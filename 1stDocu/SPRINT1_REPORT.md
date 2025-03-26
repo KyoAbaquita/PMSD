@@ -7,13 +7,12 @@
 
 ## Goals Achieved
 
-Laravel + React environment setup ✅
-Set up the database structure (projects, tasks, users) ✅
+✅ Laravel + React environment setup
+✅ User authentication (register/login/logout)
+✅ Set up the database structure (projects, tasks, users)
+✅ Basic dashboard UI
 
 ## Pending/Limitations
-
-⚠ User authentication (register/login/logout)
-⚠ Basic dashboard UI
 
 ## Next Steps
 
