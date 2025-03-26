@@ -78,7 +78,7 @@ const Register = () => {
                         onChange={(e) => setRole(e.target.value)}
                         className="w-full p-3 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
                     >
-                        <option value="admin">Admin</option>
+                        {/* <option value="admin">Admin</option> */}
                         <option value="project_manager">Project Manager</option>
                         <option value="team_member">Team Member</option>
                         <option value="client">Client</option>
