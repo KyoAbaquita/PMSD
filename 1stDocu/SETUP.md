@@ -18,6 +18,8 @@ Frontend (React.js):
    cd backend
    composer install
    php artisan migrate
+   php artisan key:generate
+   php artisan migrate:fresh
    php artisan serve  # Runs backend at http://localhost:8000
 ```
 
