@@ -1,4 +1,4 @@
-### **4. Sprint 1 Summary Report**
+### **Sprint 1 Summary Report**
 
 ```markdown
 # Sprint 1 Report
