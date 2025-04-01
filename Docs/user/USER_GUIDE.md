@@ -1,5 +1,7 @@
 # TaskMan User Guide
 
+## **Last Updated:** [04/01/2025]
+
 ## Table of Contents
 
 1. [Account Management](#account-management)
@@ -31,7 +33,7 @@
 
 ---
 
-## **2. Projects** _(Sprint 2 Features)_
+<!-- ## **2. Projects** _(Sprint 2 Features)_
 
 ### **Creating a Project**
 
@@ -49,12 +51,7 @@
 
 ---
 
-<!-- ## **3. Tasks** _(Sprint 2 Features)_
-
-### Creating a Project
-
-1. Go to **Projects** → **New Project**
-2. Enter title/description → Click **Save**
+## **3. Tasks** _(Sprint 2 Features)_
 
 ### **Creating a Task**
 
