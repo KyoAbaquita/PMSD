@@ -8,7 +8,7 @@ const Navigation = () => {
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
       <div className="container-fluid">
         <Link className="navbar-brand fw-bold" to="/">
-          Koy's PMS
+          Kuya Koy's PMS
         </Link>
         <button
           className="navbar-toggler"
