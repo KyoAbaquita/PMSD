@@ -14,8 +14,16 @@
 
 ## Pending/Limitations
 
+⚠
+⚠
+⚠
+
 ## Next Steps
 
-- Project and Task Management (Sprint 2).
-- Resource and Budget Management (Sprint 3).
+### Sprint 2: Project and Task Management
+
+- Create CRUD (Create, Read, Update, Delete) for Projects
+- Implement task creation, assignment, and updating
+- Add task statuses and priorities
+- Develop backend API for project and task management
 ```

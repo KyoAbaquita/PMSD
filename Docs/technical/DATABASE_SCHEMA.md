@@ -3,7 +3,7 @@
 ````markdown
 # Database Schema
 
-**Last Updated:** [04/01/2025]
+**Last Updated:** [04/29/2025]
 
 ## Tables
 
@@ -21,6 +21,7 @@
 |                       |             | token and stores it in this column.                                                       |
 | `created_at`          | timestamp   | Date and time when the user account was created                                           |
 | `updated_at`          | timestamp   | Date and time when the user account was last updated                                      |
+| `max_hours_week`      | INT         | Weekly work cap (default: 40)                                                             |
 | --------------------- | ----------- | ----------------------------------------------------------------------------------------- |
 
 ### `projects`
@@ -35,6 +36,7 @@
 | `status`              | enum        | Current status: pending (default), in_progress, or completed                              |
 | `created_at`          | timestamp   | Date and time when the project was created                                                |
 | `updated_at`          | timestamp   | Date and time when the project was last updated                                           |
+| `planned_budget`      | DECIMAL     | Initial budget estimate (Sprint 3)                                                        |
 | --------------------- | ----------- | ----------------------------------------------------------------------------------------- |
 
 ### `tasks`
@@ -52,15 +54,29 @@
 | `updated_at`          | timestamp   | Date and time when the task was last updated                                              |
 | --------------------- | ----------- | ----------------------------------------------------------------------------------------- |
 
+### `time_entries` _(Sprint 3)_
+
+| Field         | Type      | Description                     |
+| ------------- | --------- | ------------------------------- |
+| `id`          | bigint    | Primary key (auto-incrementing) |
+| `task_id`     | bigint    | Foreign key to `tasks`          |
+| `user_id`     | bigint    | Who logged the time             |
+| `hours`       | decimal   | Billable hours (e.g., 1.5)      |
+| `date_logged` | date      | When hours were recorded        |
+| `created_at`  | timestamp | Audit timestamp                 |
+| `updated_at`  | timestamp | Audit timestamp                 |
+
 ---
 
 ## Indexes
 
-| Table   | Indexed Columns | Type    | Purpose                       |
-| ------- | --------------- | ------- | ----------------------------- |
-| `tasks` | `project_id`    | FOREIGN | Speed up task-project queries |
-| `tasks` | `assigned_to`   | FOREIGN | Faster task-user lookups      |
-| `users` | `email`         | UNIQUE  | Ensure no duplicate emails    |
+| Table          | Indexed Columns | Type    | Purpose                         |
+| -------------- | --------------- | ------- | ------------------------------- |
+| `tasks`        | `project_id`    | FOREIGN | Speed up task-project queries   |
+| `tasks`        | `assigned_to`   | FOREIGN | Faster task-user lookups        |
+| `users`        | `email`         | UNIQUE  | Ensure no duplicate emails      |
+| `time_entries` | `task_id`       | FOREIGN | Speed up time-entry aggregation |
+| `time_entries` | `user_id`       | FOREIGN | Track user productivity         |
 
 ---
 
@@ -79,9 +95,21 @@
   - **Constraint**: `ON DELETE SET NULL` (Tasks can exist without projects but are logically grouped).
 
 - **`users` ━━ `tasks`**
+
   - Association
   - One-to-Many: A user can be assigned multiple tasks.
   - **Constraint**: `ON DELETE SET NULL` (Tasks become unassigned when without assignees).
+
+- **`tasks` ◆━━ `time_entries`**
+
+  - Composition
+  - One-to-Many: A task can have multiple time entries.
+  - **Constraint**: `ON DELETE CASCADE` (Time entries are deleted with tasks).
+
+- **`users` ━━ `time_entries`**
+  - Association
+  - One-to-Many: A user can log time to multiple tasks.
+  - **Constraint**: `ON DELETE SET NULL` (Entries remain if user is deleted).
 
 ---
 
@@ -99,6 +127,13 @@ VALUES ('Website Redesign', 1, 'in_progress');
 ```sql
 INSERT INTO tasks (project_id, name, priority)
 VALUES (1, 'Fix header layout', 'high');
+```
+
+### Log time entry:
+
+```sql
+INSERT INTO time_entries (task_id, user_id, hours, date_logged)
+VALUES (1, 3, 2.5, '2025-04-30');
 ```
 
 ### Migration Commands
