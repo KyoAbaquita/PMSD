@@ -89,7 +89,7 @@ const Dashboard = ({ onLogout }) => {
         <div className="col-md-12">
           <div className="card">
             <div className="card-header">
-              <h5 className="mb-0">Quick Actions</h5>
+              <h5 className="mb-0">Menu</h5>
             </div>
             <div className="card-body">
               <div className="d-flex gap-3">
