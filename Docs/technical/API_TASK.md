@@ -11,6 +11,7 @@
 2. [Projects](#2-projects)
 3. [Tasks](#3-tasks)
 4. [HTTP Status Codes](#4-http-status-codes)
+5. [Resource & Budget Management](Resource-&-Budget-Management)
 
 ---
 
@@ -198,5 +199,27 @@ POST /tasks
 | 404  | Not Found            | Invalid resource ID       |
 | 422  | Unprocessable Entity | Validation errors         |
 | 500  | Server Error         | Backend failures          |
+
+##
+
+## 5. Resource & Budget Management (Sprint 3)
+
+| Endpoint                | Method | Description                    |
+| ----------------------- | ------ | ------------------------------ |
+| `/tasks/{id}/allocate`  | POST   | Assign resource + set hours    |
+| `/projects/{id}/budget` | GET    | Get budget vs. actual spending |
+| `/time-entries`         | POST   | Log working hours              |
+
+### Sample Request (Budget Check)
+
+```json
+GET /projects/7/budget
+Response:
+{
+  "planned": 5000,
+  "actual": 3200,
+  "remaining": 1800
+}
+```
 
 ##

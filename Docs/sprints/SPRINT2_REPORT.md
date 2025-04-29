@@ -4,27 +4,31 @@
 
 ## Goals Achieved
 
-✅
-✅
-✅
-
-## Pending/Limitations
-
-⚠ **Project CRUD**
+✅**Project CRUD**
 
 - Create, view, edit, and delete projects
 
-⚠ **Task Management**
+✅**Task Management**
 
 - Task creation, assignment, and updates
 - Statuses (e.g., "To Do", "In Progress", "Done")
 - Priorities (e.g., Low/Medium/High)
 
-⚠ **Backend API**
+✅**Backend API**
 
 - New endpoints for projects/tasks
 
+## Pending/Limitations
+
+⚠
+⚠
+⚠
+
 ## Next Steps
 
-- User permissions (Sprint 3)
-- Advanced task filtering (Sprint 4)
+### Resource and Budget Management
+
+- Create resource allocation feature (assign team members to tasks)
+- Develop budget tracking and actual expenditure feature
+- Implement time tracking for tasks
+- Add progress tracking and Gantt chart visualization
