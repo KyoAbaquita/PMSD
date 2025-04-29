@@ -21,3 +21,24 @@ use App\Http\Controllers\AuthController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+
+Route::middleware('auth:sanctum')->group(function () {
+    // User profile route
+    Route::get('/user', function (\Illuminate\Http\Request $request) {
+        return $request->user();
+    });
+
+    // Project routes
+    Route::apiResource('projects', \App\Http\Controllers\ProjectController::class);
+
+    // Task routes
+    Route::apiResource('tasks', \App\Http\Controllers\TaskController::class);
+
+    // Get tasks for a specific project
+    Route::get('projects/{project}/tasks', [\App\Http\Controllers\TaskController::class, 'getProjectTasks']);
+
+    // Get all users for task assignment
+    Route::get('/users', function () {
+        return response()->json(['users' => \App\Models\User::all()]);
+    });
+});

@@ -1,40 +1,97 @@
-import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./components/login.js";
-import Register from "./components/registration.js";
-import Dashboard from "./components/dashboard.js";
-import "./App.css";
+// f-end/src/App.js
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import Navigation from './components/layout/Navigation';
+import Dashboard from './components/dashboard';
+import Login from './components/login';
+import Register from './components/registration';
+import ProjectList from './components/projects/ProjectList';
+import ProjectForm from './components/projects/ProjectForm';
+import ProjectDetail from './components/projects/ProjectDetail';
+import TaskList from './components/tasks/TaskList';
+import TaskForm from './components/tasks/TaskForm';
+import TaskDetail from './components/tasks/TaskDetail';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-const App = () => {
-    // State to manage authentication token, initialized from localStorage
-    const [token, setToken] = useState(localStorage.getItem("token"));
-
-    // Function to handle login and store the token in localStorage
-    const handleLogin = (newToken) => {
-        localStorage.setItem("token", newToken); // Save token for persistent login
-        setToken(newToken);
-    };
-
-    // Function to handle logout and remove the token from localStorage
-    const handleLogout = () => {
-        localStorage.removeItem("token"); // Clear stored token
-        setToken(null);
-    };
-
-    return (
-        <Router>
-            <Routes>
-                {/* If user is authenticated, redirect to dashboard; otherwise, show login page */}
-                <Route path="/" element={token ? <Navigate to="/dashboard" /> : <Login onLogin={handleLogin} />} />
-
-                {/* If user is authenticated, redirect to dashboard; otherwise, show registration page */}
-                <Route path="/register" element={token ? <Navigate to="/dashboard" /> : <Register onRegister={handleLogin} />} />
-
-                {/* If user is authenticated, show dashboard; otherwise, redirect to login */}
-                <Route path="/dashboard" element={token ? <Dashboard onLogout={handleLogout} /> : <Navigate to="/" />} />
-            </Routes>
-        </Router>
-    );
-};
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  useEffect(() => {
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    setIsAuthenticated(!!token);
+  }, []);
+  
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+  };
+  
+  const handleLogin = (token) => {
+    localStorage.setItem('token', token);
+    setIsAuthenticated(true);
+  };
+  
+  return (
+    <Router>
+      <div className="App">
+      {isAuthenticated && <Navigation />}
+      <div className="container py-4">
+        <Routes>
+          <Route 
+            path="/" 
+            element={isAuthenticated ? <Dashboard onLogout={handleLogout} /> : <Navigate to="/login" />} 
+          />
+          <Route path="/login" element={<Login onLogin={handleLogin} />} />
+          <Route path="/register" element={<Register />} />
+          
+          {/* Project routes */}
+          <Route 
+            path="/projects" 
+            element={isAuthenticated ? <ProjectList /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/projects/create" 
+            element={isAuthenticated ? <ProjectForm /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/projects/:id" 
+            element={isAuthenticated ? <ProjectDetail /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/projects/:id/edit" 
+            element={isAuthenticated ? <ProjectForm /> : <Navigate to="/login" />} 
+          />
+          
+          {/* Task routes */}
+          <Route 
+            path="/projects/:projectId/tasks" 
+            element={isAuthenticated ? <TaskList /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/projects/:projectId/tasks/create" 
+            element={isAuthenticated ? <TaskForm /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/tasks" 
+            element={isAuthenticated ? <TaskList /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/tasks/:taskId" 
+            element={isAuthenticated ? <TaskDetail /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/tasks/:taskId/edit" 
+            element={isAuthenticated ? <TaskForm /> : <Navigate to="/login" />} 
+          />
+          
+          {/* Catch-all route */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+        </div>
+      </div>
+    </Router>
+  );
+}
 
 export default App;

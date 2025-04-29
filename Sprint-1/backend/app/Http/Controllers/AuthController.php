@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Laravel\Sanctum\HasApiTokens;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -30,9 +29,12 @@ class AuthController extends Controller
             'role' => $request->role,
         ]);
 
+        $token = $user->createToken('authToken')->plainTextToken;
+
         return response()->json([
             'message' => 'User registered successfully!',
-            'user' => $user
+            'user' => $user,
+            'token' => $token
         ], 201);
     }
 
