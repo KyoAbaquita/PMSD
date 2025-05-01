@@ -15,8 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->date('start_date');
-            $table->date('end_date')->nullable();
+            $table->decimal('budget', 10, 2)->nullable();
+            $table->date('start_date')->nullable();
+            $table->date('due_date')->nullable();
             $table->string('status')->default('planning');
             $table->foreignId('user_id')->constrained('users');
             $table->timestamps();

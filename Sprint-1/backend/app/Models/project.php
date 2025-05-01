@@ -15,12 +15,19 @@ class Project extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'description', 'start_date', 'end_date', 'status', 'user_id'
+        'name', 
+        'description', 
+        'budget', 
+        'start_date', 
+        'due_date', 
+        'status', 
+        'user_id'
     ];
 
     protected $casts = [
         'start_date' => 'date',
-        'end_date' => 'date',
+        'due_date' => 'date',
+        'budget' => 'decimal:2',
     ];
 
     public function user()

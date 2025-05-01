@@ -3,7 +3,6 @@ import { Gantt, ViewMode } from 'gantt-task-react';
 import 'gantt-task-react/dist/index.css';
 
 const ProjectGanttChart = ({ tasks }) => {
-  console.log('Received tasks:', tasks);
 
   if (!Array.isArray(tasks)) {
     console.warn('Tasks prop is not an array');
@@ -17,32 +16,31 @@ const ProjectGanttChart = ({ tasks }) => {
       return acc;
     }
 
-    let startDate = new Date();
-    if (task.due_date) {
-      const parsedDate = new Date(task.due_date);
-      if (!isNaN(parsedDate)) {
-        startDate = parsedDate;
-      } else {
-        console.warn('Invalid due_date for task:', task);
-        return acc; // skip task with invalid date
-      }
-    } else {
-      console.warn('Missing due_date for task:', task);
-      return acc; // skip task without due_date
+    if (!task.start_time || !task.due_time) {
+      console.warn('Missing start_time or due_time for task:', task);
+      return acc;
     }
-
+    
+    const startDate = new Date(task.start_time);
+    const endDate = new Date(task.due_time);
+    
+    if (isNaN(startDate) || isNaN(endDate)) {
+      console.warn('Invalid start_time or due_time:', task);
+      return acc;
+    }
+    
     const ganttTask = {
       start: startDate,
-      end: startDate,
+      end: endDate,
       name: task.title || 'Untitled Task',
       id: task.id ? task.id.toString() : Math.random().toString(36).substr(2, 9),
       type: 'task',
       progress: task.status === 'completed' ? 100 : 0,
       isDisabled: true,
     };
-
+    
     acc.push(ganttTask);
-    return acc;
+    return acc;    
   }, []);
 
   console.log('Mapped ganttTasks:', ganttTasks);

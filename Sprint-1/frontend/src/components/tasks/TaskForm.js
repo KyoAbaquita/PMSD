@@ -1,84 +1,104 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
 
 const TaskForm = () => {
   const { projectId, taskId } = useParams();
   const navigate = useNavigate();
   const isEditing = !!taskId;
-  
+
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    project_id: projectId || '',
-    assigned_to: '',
-    status: 'todo',
-    priority: 'medium',
-    due_date: '',
+    title: "",
+    description: "",
+    project_id: projectId || "",
+    assigned_to: "",
+    status: "todo",
+    priority: "medium",
+    start_time: "",
+    due_time: "",
+    cost: "",
   });
-  
+
   const [users, setUsers] = useState([]);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         const headers = {
           Authorization: `Bearer ${token}`,
         };
-        
+
         // Fetch users for assignment
-        const usersResponse = await axios.get('http://localhost:8000/api/users', { headers });
+        const usersResponse = await axios.get(
+          "http://localhost:8000/api/users",
+          { headers }
+        );
         setUsers(usersResponse.data.users);
-        
+
         // Fetch projects for dropdown
-        const projectsResponse = await axios.get('http://localhost:8000/api/projects', { headers });
+        const projectsResponse = await axios.get(
+          "http://localhost:8000/api/projects",
+          { headers }
+        );
         setProjects(projectsResponse.data.projects);
-        
+
         // If editing, fetch task details
         if (isEditing) {
-          const taskResponse = await axios.get(`http://localhost:8000/api/tasks/${taskId}`, { headers });
+          const taskResponse = await axios.get(
+            `http://localhost:8000/api/tasks/${taskId}`,
+            { headers }
+          );
           const task = taskResponse.data.task;
-          
+          console.log("Fetched task:", task);
+
+
           setFormData({
             title: task.title,
-            description: task.description || '',
+            description: task.description || "",
             project_id: task.project_id,
-            assigned_to: task.assigned_to || '',
+            assigned_to: task.assigned_to || "",
             status: task.status,
             priority: task.priority,
-            due_date: task.due_date ? task.due_date.split('T')[0] : '',
+            start_time: task.start_time
+              ? task.start_time.slice(0, 16)
+              : "",
+            due_time: task.due_time
+              ? task.due_time.slice(0, 16)
+              : "",
+            cost: task.cost || "",
           });
+          
         }
-        
+
         setLoading(false);
       } catch (err) {
-        setError('Failed to load form data');
+        setError("Failed to load form data");
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, [taskId, projectId, isEditing]);
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
-      const token = localStorage.getItem('token');
-      const method = isEditing ? 'put' : 'post';
-      const url = isEditing 
+      const token = localStorage.getItem("token");
+      const method = isEditing ? "put" : "post";
+      const url = isEditing
         ? `http://localhost:8000/api/tasks/${taskId}`
-        : 'http://localhost:8000/api/tasks';
-      
+        : "http://localhost:8000/api/tasks";
+
       await axios({
         method,
         url,
@@ -87,22 +107,22 @@ const TaskForm = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      
+
       // Navigate back to the project's task list
       navigate(`/projects/${formData.project_id}/tasks`);
     } catch (err) {
-      setError('Failed to save task');
+      setError("Failed to save task");
     }
   };
-  
+
   if (loading) return <div>Loading...</div>;
-  
+
   return (
     <div className="task-form">
-      <h2>{isEditing ? 'Edit Task' : 'Create New Task'}</h2>
-      
+      <h2>{isEditing ? "Edit Task" : "Create New Task"}</h2>
+  
       {error && <div className="alert alert-danger">{error}</div>}
-      
+  
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label htmlFor="title" className="form-label">Task Title</label>
@@ -116,7 +136,7 @@ const TaskForm = () => {
             required
           />
         </div>
-        
+  
         <div className="mb-3">
           <label htmlFor="description" className="form-label">Description</label>
           <textarea
@@ -128,7 +148,7 @@ const TaskForm = () => {
             rows={3}
           />
         </div>
-        
+  
         <div className="mb-3">
           <label htmlFor="project_id" className="form-label">Project</label>
           <select
@@ -138,17 +158,17 @@ const TaskForm = () => {
             value={formData.project_id}
             onChange={handleChange}
             required
-            disabled={!!projectId} // Disable if project ID is passed in URL
+            disabled={!!projectId}
           >
             <option value="">Select Project</option>
-            {projects.map(project => (
+            {projects.map((project) => (
               <option key={project.id} value={project.id}>
                 {project.name}
               </option>
             ))}
           </select>
         </div>
-        
+  
         <div className="row mb-3">
           <div className="col">
             <label htmlFor="status" className="form-label">Status</label>
@@ -159,6 +179,7 @@ const TaskForm = () => {
               value={formData.status}
               onChange={handleChange}
               required
+              disabled={formData.status === 'completed'}
             >
               <option value="todo">To Do</option>
               <option value="in_progress">In Progress</option>
@@ -166,7 +187,7 @@ const TaskForm = () => {
               <option value="completed">Completed</option>
             </select>
           </div>
-          
+  
           <div className="col">
             <label htmlFor="priority" className="form-label">Priority</label>
             <select
@@ -184,7 +205,7 @@ const TaskForm = () => {
             </select>
           </div>
         </div>
-        
+  
         <div className="row mb-3">
           <div className="col">
             <label htmlFor="assigned_to" className="form-label">Assign To</label>
@@ -196,33 +217,61 @@ const TaskForm = () => {
               onChange={handleChange}
             >
               <option value="">Unassigned</option>
-              {users.map(user => (
+              {users.map((user) => (
                 <option key={user.id} value={user.id}>
                   {user.name}
                 </option>
               ))}
             </select>
           </div>
-          
+  
           <div className="col">
-            <label htmlFor="due_date" className="form-label">Due Date</label>
+            <label htmlFor="start_time" className="form-label">Start Time</label>
             <input
-              type="date"
+              type="datetime-local"
               className="form-control"
-              id="due_date"
-              name="due_date"
-              value={formData.due_date}
+              id="start_time"
+              name="start_time"
+              value={formData.start_time}
               onChange={handleChange}
             />
           </div>
         </div>
-        
+  
+        <div className="row mb-3">
+          <div className="col">
+            <label htmlFor="due_time" className="form-label">Due Time</label>
+            <input
+              type="datetime-local"
+              className="form-control"
+              id="due_time"
+              name="due_time"
+              value={formData.due_time}
+              onChange={handleChange}
+            />
+          </div>
+  
+          <div className="col">
+            <label htmlFor="cost" className="form-label">Cost</label>
+            <input
+              type="number"
+              className="form-control"
+              id="cost"
+              name="cost"
+              value={formData.cost}
+              onChange={handleChange}
+              min="0"
+              step="0.01"
+            />
+          </div>
+        </div>
+  
         <div className="d-flex gap-2">
           <button type="submit" className="btn btn-primary">
-            {isEditing ? 'Update Task' : 'Create Task'}
+            {isEditing ? "Update Task" : "Create Task"}
           </button>
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="btn btn-secondary"
             onClick={() => navigate(`/projects/${formData.project_id}/tasks`)}
           >
@@ -232,6 +281,7 @@ const TaskForm = () => {
       </form>
     </div>
   );
+  
 };
 
 export default TaskForm;

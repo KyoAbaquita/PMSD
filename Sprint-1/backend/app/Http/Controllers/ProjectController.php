@@ -19,7 +19,7 @@ class ProjectController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'due_date' => 'nullable|date|after_or_equal:start_date',
             'status' => 'required|string|in:planning,active,completed,on_hold',
         ]);
 
@@ -27,7 +27,7 @@ class ProjectController extends Controller
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
             'start_date' => $validated['start_date'],
-            'end_date' => $validated['end_date'] ?? null,
+            'due_date' => $validated['due_date'] ?? null,
             'status' => $validated['status'],
             'user_id' => auth()->id(),
         ]);
@@ -37,8 +37,16 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
-        return response()->json(['project' => $project->load('tasks', 'user')]);
+        $project->load('tasks'); // ensure tasks are loaded
+
+        $actual_cost = $project->tasks->sum('cost');
+
+        return response()->json([
+            'project' => $project,
+            'actual_cost' => $actual_cost,
+        ]);
     }
+
 
     public function update(Request $request, Project $project)
     {
@@ -46,7 +54,7 @@ class ProjectController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'due_date' => 'nullable|date|after_or_equal:start_date',
             'status' => 'required|string|in:planning,active,completed,on_hold',
             'budget' => 'nullable|numeric',
             'actual_expenditure' => 'nullable|numeric',

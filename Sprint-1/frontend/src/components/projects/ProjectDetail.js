@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import ProjectGanttChart from './ProjectGanttChart';
-import { Link, useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import ProjectGanttChart from "./ProjectGanttChart";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const ProjectDetail = () => {
   const { id } = useParams();
@@ -10,71 +10,77 @@ const ProjectDetail = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+  const [actualCost, setActualCost] = useState(0);
+
   useEffect(() => {
     const fetchProjectDetails = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         const headers = { Authorization: `Bearer ${token}` };
-        
-        // Fetch project details
+  
         const projectResponse = await axios.get(
           `http://localhost:8000/api/projects/${id}`,
           { headers }
         );
-        
-        // Fetch tasks for this project
+  
         const tasksResponse = await axios.get(
           `http://localhost:8000/api/projects/${id}/tasks`,
           { headers }
         );
-        
+  
         setProject(projectResponse.data.project);
+        setActualCost(projectResponse.data.actual_cost);
         setTasks(tasksResponse.data.tasks);
         setLoading(false);
       } catch (err) {
-        setError('Failed to fetch project details');
+        setError("Failed to fetch project details");
         setLoading(false);
       }
     };
-    
+  
     fetchProjectDetails();
   }, [id]);
   
+
   const handleDeleteProject = async () => {
-    if (!window.confirm('Are you sure you want to delete this project and all associated tasks?')) {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this project and all associated tasks?"
+      )
+    ) {
       return;
     }
-    
+
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       await axios.delete(`http://localhost:8000/api/projects/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
-      navigate('/projects');
+
+      navigate("/projects");
     } catch (err) {
-      setError('Failed to delete project');
+      setError("Failed to delete project");
     }
   };
-  
+
   if (loading) return <div>Loading project details...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
   if (!project) return <div>Project not found</div>;
-  
+
   // Calculate project stats
   const taskStats = {
     total: tasks.length,
-    completed: tasks.filter(task => task.status === 'completed').length,
-    inProgress: tasks.filter(task => task.status === 'in_progress').length,
-    todo: tasks.filter(task => task.status === 'todo').length,
-    review: tasks.filter(task => task.status === 'review').length,
+    completed: tasks.filter((task) => task.status === "completed").length,
+    inProgress: tasks.filter((task) => task.status === "in_progress").length,
+    todo: tasks.filter((task) => task.status === "todo").length,
+    review: tasks.filter((task) => task.status === "review").length,
   };
-  
-  const completionPercentage = taskStats.total > 0 
-    ? Math.round((taskStats.completed / taskStats.total) * 100) 
-    : 0;
-    
+
+  const completionPercentage =
+    taskStats.total > 0
+      ? Math.round((taskStats.completed / taskStats.total) * 100)
+      : 0;
+
   return (
     <div className="project-detail">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -91,44 +97,78 @@ const ProjectDetail = () => {
           </button>
         </div>
       </div>
-      
+
       <div className="row mb-4">
         <div className="col-md-8">
           <div className="card mb-3">
             <div className="card-header">Project Details</div>
             <div className="card-body">
-              <p><strong>Description:</strong> {project.description || 'No description provided'}</p>
+              <p>
+                <strong>Description:</strong>{" "}
+                {project.description || "No description provided"}
+              </p>
               <div className="row">
                 <div className="col-md-6">
-                  <p><strong>Status:</strong> <span className={`badge bg-${getStatusBadge(project.status)}`}>{project.status}</span></p>
-                  <p><strong>Project Manager:</strong> {project.user?.name || 'Not assigned'}</p>
+                  <p>
+                    <strong>Status:</strong>{" "}
+                    <span
+                      className={`badge bg-${getStatusBadge(project.status)}`}
+                    >
+                      {project.status}
+                    </span>
+                  </p>
+                  {/* <p>
+                    <strong>Project Manager:</strong>{" "}
+                    {project.user?.name || "Not assigned"}
+                  </p> */}
                 </div>
                 <div className="col-md-6">
-                  <p><strong>Start Date:</strong> {new Date(project.start_date).toLocaleDateString()}</p>
-                  <p><strong>End Date:</strong> {project.end_date ? new Date(project.end_date).toLocaleDateString() : 'Not set'}</p>
+                  <p>
+                    <strong>Start Date:</strong>{" "}
+                    {new Date(project.start_date).toLocaleDateString()}
+                  </p>
+                  <p>
+                    <strong>Due Date:</strong>{" "}
+                    {project.due_date
+                      ? new Date(project.due_date).toLocaleDateString()
+                      : "Not set"}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        
+
         <div className="col-md-4">
           <div className="card">
-            <div className="card-header">Project Progress</div>
+            <div className="card-header">Project Progress & Budget</div>
             <div className="card-body">
               <div className="progress mb-3">
-                <div 
-                  className="progress-bar" 
-                  role="progressbar" 
+                <div
+                  className="progress-bar"
+                  role="progressbar"
                   style={{ width: `${completionPercentage}%` }}
                   aria-valuenow={completionPercentage}
-                  aria-valuemin="0" 
+                  aria-valuemin="0"
                   aria-valuemax="100"
                 >
                   {completionPercentage}%
                 </div>
               </div>
-              
+
+              <div className="mb-3">
+                <strong>Budget:</strong> ₱{Number(project.budget || 0).toFixed(2)}<br />
+                <br />
+                <strong>Actual Cost:</strong> ₱{Number(actualCost || 0).toFixed(2)}<br />
+                <br />
+                <strong>Status:</strong>{" "}
+                {actualCost > project.budget ? (
+                  <span className="text-danger">Over Budget</span>
+                ) : (
+                  <span className="text-success">Within Budget</span>
+                )}
+              </div>
+
               <div className="task-stats">
                 <div className="row text-center">
                   <div className="col-3">
@@ -192,22 +232,30 @@ const ProjectDetail = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {tasks.slice(0, 5).map(task => (
+                  {tasks.slice(0, 5).map((task) => (
                     <tr key={task.id}>
                       <td>{task.title}</td>
                       <td>
-                        <span className={`badge bg-${getStatusBadge(task.status)}`}>
-                          {task.status.replace('_', ' ')}
+                        <span
+                          className={`badge bg-${getStatusBadge(task.status)}`}
+                        >
+                          {task.status.replace("_", " ")}
                         </span>
                       </td>
                       <td>
-                        <span className={`badge bg-${getPriorityBadge(task.priority)}`}>
+                        <span
+                          className={`badge bg-${getPriorityBadge(
+                            task.priority
+                          )}`}
+                        >
                           {task.priority}
                         </span>
                       </td>
-                      <td>{task.assignedUser?.name || 'Unassigned'}</td>
+                      <td>{task.assignedUser?.name || "Unassigned"}</td>
                       <td>
-                        {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'Not set'}
+                        {task.due_time
+                          ? new Date(task.due_time).toLocaleDateString()
+                          : "Not set"}
                       </td>
                     </tr>
                   ))}
@@ -230,24 +278,37 @@ const ProjectDetail = () => {
 
 const getStatusBadge = (status) => {
   switch (status) {
-    case 'planning': return 'secondary';
-    case 'active': return 'primary';
-    case 'completed': return 'success';
-    case 'on_hold': return 'warning';
-    case 'todo': return 'secondary';
-    case 'in_progress': return 'primary';
-    case 'review': return 'info';
-    default: return 'light';
+    case "planning":
+      return "secondary";
+    case "active":
+      return "primary";
+    case "completed":
+      return "success";
+    case "on_hold":
+      return "warning";
+    case "todo":
+      return "secondary";
+    case "in_progress":
+      return "primary";
+    case "review":
+      return "info";
+    default:
+      return "light";
   }
 };
 
 const getPriorityBadge = (priority) => {
   switch (priority) {
-    case 'low': return 'success';
-    case 'medium': return 'info';
-    case 'high': return 'warning';
-    case 'urgent': return 'danger';
-    default: return 'secondary';
+    case "low":
+      return "success";
+    case "medium":
+      return "info";
+    case "high":
+      return "warning";
+    case "urgent":
+      return "danger";
+    default:
+      return "secondary";
   }
 };
 

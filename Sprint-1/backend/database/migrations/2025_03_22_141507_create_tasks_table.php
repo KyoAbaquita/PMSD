@@ -19,10 +19,10 @@ return new class extends Migration
             $table->foreignId('assigned_to')->nullable()->constrained('users');
             $table->string('status')->default('todo');
             $table->string('priority')->default('medium');
-            $table->date('due_date')->nullable();
-            // New columns for Sprint 3 features
-            $table->float('time_estimated')->nullable();
+            $table->dateTime('start_time')->nullable();
+            $table->dateTime('due_time')->nullable();
             $table->float('time_spent')->nullable();
+            $table->decimal('cost', 10, 2)->nullable();
             $table->timestamps();
         });
     }

@@ -108,7 +108,10 @@ const TaskList = () => {
                     </span>
                   </td>
                   <td>
-                    {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'Not set'}
+                  {task.due_time
+                    ? new Date(task.due_time).toLocaleDateString()
+                    : 'Not set'
+                  }
                   </td>
                   <td>{task.assignedUser?.name || 'Unassigned'}</td>
                   <td>

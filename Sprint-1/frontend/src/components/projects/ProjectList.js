@@ -49,7 +49,7 @@ const ProjectList = () => {
                     <span className={`badge bg-${getStatusBadge(project.status)}`}>
                       {project.status}
                     </span>
-                    <span>Due: {new Date(project.end_date).toLocaleDateString()}</span>
+                    <span>Due: {new Date(project.due_date).toLocaleDateString()}</span>
                   </div>
                   <Link to={`/projects/${project.id}`} className="btn btn-info btn-sm me-2">
                     View

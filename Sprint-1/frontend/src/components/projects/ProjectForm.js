@@ -1,68 +1,76 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
 
 const ProjectForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = !!id;
-  
+
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    start_date: '',
-    end_date: '',
-    status: 'planning',
+    name: "",
+    description: "",
+    start_date: "",
+    due_date: "",
+    status: "planning",
+    budget: "",
   });
-  
+
   const [loading, setLoading] = useState(isEditing);
   const [error, setError] = useState(null);
-  
+
   useEffect(() => {
     if (isEditing) {
       const fetchProject = async () => {
         try {
-          const token = localStorage.getItem('token');
-          const response = await axios.get(`http://localhost:8000/api/projects/${id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          
+          const token = localStorage.getItem("token");
+          const response = await axios.get(
+            `http://localhost:8000/api/projects/${id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
           const project = response.data.project;
           setFormData({
             name: project.name,
-            description: project.description || '',
-            start_date: project.start_date ? project.start_date.split('T')[0] : '',
-            end_date: project.end_date ? project.end_date.split('T')[0] : '',
+            description: project.description || "",
+            start_date: project.start_date
+              ? project.start_date.split("T")[0]
+              : "",
+            due_date: project.due_date ? project.due_date.split("T")[0] : "",
             status: project.status,
+            budget: project.budget || "",
           });
           setLoading(false);
         } catch (err) {
-          setError('Failed to fetch project details');
+          setError("Failed to fetch project details");
           setLoading(false);
         }
       };
-      
+
       fetchProject();
     }
   }, [id, isEditing]);
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
-      const token = localStorage.getItem('token');
-      const method = isEditing ? 'put' : 'post';
-      const url = isEditing 
+      const token = localStorage.getItem("token");
+      const method = isEditing ? "put" : "post";
+      const url = isEditing
         ? `http://localhost:8000/api/projects/${id}`
-        : 'http://localhost:8000/api/projects';
-      
+        : "http://localhost:8000/api/projects";
+      console.log("Submitting project formData:", formData);
+
       await axios({
         method,
         url,
@@ -71,29 +79,31 @@ const ProjectForm = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      
-      navigate('/projects');
+
+      navigate("/projects");
     } catch (err) {
       if (err.response && err.response.data && err.response.data.message) {
         setError(`Failed to save project: ${err.response.data.message}`);
       } else {
-        setError('Failed to save project');
+        setError("Failed to save project");
       }
-      console.error('Project save error:', err);
+      console.error("Project save error:", err);
     }
   };
-  
+
   if (loading) return <div>Loading...</div>;
-  
+
   return (
     <div className="project-form">
-      <h2>{isEditing ? 'Edit Project' : 'Create New Project'}</h2>
-      
+      <h2>{isEditing ? "Edit Project" : "Create New Project"}</h2>
+
       {error && <div className="alert alert-danger">{error}</div>}
-      
+
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <label htmlFor="name" className="form-label">Project Name</label>
+          <label htmlFor="name" className="form-label">
+            Project Name
+          </label>
           <input
             type="text"
             className="form-control"
@@ -104,9 +114,11 @@ const ProjectForm = () => {
             required
           />
         </div>
-        
+
         <div className="mb-3">
-          <label htmlFor="description" className="form-label">Description</label>
+          <label htmlFor="description" className="form-label">
+            Description
+          </label>
           <textarea
             className="form-control"
             id="description"
@@ -116,10 +128,12 @@ const ProjectForm = () => {
             rows={3}
           />
         </div>
-        
+
         <div className="row mb-3">
           <div className="col">
-            <label htmlFor="start_date" className="form-label">Start Date</label>
+            <label htmlFor="start_date" className="form-label">
+              Start Date
+            </label>
             <input
               type="date"
               className="form-control"
@@ -130,22 +144,26 @@ const ProjectForm = () => {
               required
             />
           </div>
-          
+
           <div className="col">
-            <label htmlFor="end_date" className="form-label">End Date</label>
+            <label htmlFor="due_date" className="form-label">
+              Due Date
+            </label>
             <input
               type="date"
               className="form-control"
-              id="end_date"
-              name="end_date"
-              value={formData.end_date}
+              id="due_date"
+              name="due_date"
+              value={formData.due_date}
               onChange={handleChange}
             />
           </div>
         </div>
-        
+
         <div className="mb-3">
-          <label htmlFor="status" className="form-label">Status</label>
+          <label htmlFor="status" className="form-label">
+            Status
+          </label>
           <select
             className="form-select"
             id="status"
@@ -160,15 +178,31 @@ const ProjectForm = () => {
             <option value="completed">Completed</option>
           </select>
         </div>
-        
+
+        <div className="mb-3">
+          <label htmlFor="budget" className="form-label">
+            Budget (₱)
+          </label>
+          <input
+            type="number"
+            className="form-control"
+            id="budget"
+            name="budget"
+            value={formData.budget}
+            onChange={handleChange}
+            min="0"
+            step="0.01"
+          />
+        </div>
+
         <div className="d-flex gap-2">
           <button type="submit" className="btn btn-primary">
-            {isEditing ? 'Update Project' : 'Create Project'}
+            {isEditing ? "Update Project" : "Create Project"}
           </button>
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="btn btn-secondary"
-            onClick={() => navigate('/projects')}
+            onClick={() => navigate("/projects")}
           >
             Cancel
           </button>
