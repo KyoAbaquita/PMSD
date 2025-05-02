@@ -91,7 +91,16 @@ const ProjectForm = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return (
+    <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+      <div className="text-center">
+        <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <div className="mt-2">Loading Form...</div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="project-form">

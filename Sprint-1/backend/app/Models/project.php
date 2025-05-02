@@ -15,12 +15,12 @@ class Project extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 
-        'description', 
-        'budget', 
-        'start_date', 
-        'due_date', 
-        'status', 
+        'name',
+        'description',
+        'budget',
+        'start_date',
+        'due_date',
+        'status',
         'user_id'
     ];
 
@@ -39,4 +39,10 @@ class Project extends Model
     {
         return $this->hasMany(Task::class);
     }
+
+    public function members()
+    {
+        return $this->belongsToMany(User::class);
+    }
+
 }

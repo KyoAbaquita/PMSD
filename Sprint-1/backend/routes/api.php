@@ -1,44 +1,36 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-*/
-
-
-
-
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\TaskController;
+use App\Http\Controllers\ProjectMemberController;
+use App\Models\User;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->group(function () {
-    // User profile route
+    // Authenticated user profile
     Route::get('/user', function (\Illuminate\Http\Request $request) {
         return $request->user();
     });
 
     // Project routes
-    Route::apiResource('projects', \App\Http\Controllers\ProjectController::class);
+    Route::apiResource('projects', ProjectController::class);
 
     // Task routes
-    Route::apiResource('tasks', \App\Http\Controllers\TaskController::class);
+    Route::apiResource('tasks', TaskController::class);
+    Route::get('projects/{project}/tasks', [TaskController::class, 'getProjectTasks']);
 
-    // Get tasks for a specific project
-    Route::get('projects/{project}/tasks', [\App\Http\Controllers\TaskController::class, 'getProjectTasks']);
+    // Project Members routes
+    Route::get('projects/{project}/members', [ProjectMemberController::class, 'index']);
+    Route::post('projects/{project}/members', [ProjectMemberController::class, 'store']);
+    Route::delete('projects/{project}/members/{user}', [ProjectMemberController::class, 'destroy']);
 
-    // Get all users for task assignment
+    // Get all users (used for system-wide purposes if needed)
     Route::get('/users', function () {
-        return response()->json(['users' => \App\Models\User::all()]);
+        return response()->json(['users' => User::all()]);
     });
 });

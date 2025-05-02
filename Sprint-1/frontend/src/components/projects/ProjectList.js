@@ -27,7 +27,16 @@ const ProjectList = () => {
     fetchProjects();
   }, []);
   
-  if (loading) return <div>Loading projects...</div>;
+  if (loading) return (
+    <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+      <div className="text-center">
+        <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <div className="mt-2">Fetching Projects...</div>
+      </div>
+    </div>
+  );
   if (error) return <div>{error}</div>;
   
   return (

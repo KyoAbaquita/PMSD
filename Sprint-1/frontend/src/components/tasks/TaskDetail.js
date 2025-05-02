@@ -60,7 +60,16 @@ const TaskDetail = () => {
     }
   };
   
-  if (loading) return <div>Loading task details...</div>;
+  if (loading) return (
+    <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+      <div className="text-center">
+        <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <div className="mt-2">Fetching Task Details...</div>
+      </div>
+    </div>
+  );
   if (error) return <div className="alert alert-danger">{error}</div>;
   if (!task) return <div>Task not found</div>;
   

@@ -17,17 +17,17 @@ const ProjectDetail = () => {
       try {
         const token = localStorage.getItem("token");
         const headers = { Authorization: `Bearer ${token}` };
-  
+
         const projectResponse = await axios.get(
           `http://localhost:8000/api/projects/${id}`,
           { headers }
         );
-  
+
         const tasksResponse = await axios.get(
           `http://localhost:8000/api/projects/${id}/tasks`,
           { headers }
         );
-  
+
         setProject(projectResponse.data.project);
         setActualCost(projectResponse.data.actual_cost);
         setTasks(tasksResponse.data.tasks);
@@ -37,10 +37,9 @@ const ProjectDetail = () => {
         setLoading(false);
       }
     };
-  
+
     fetchProjectDetails();
   }, [id]);
-  
 
   const handleDeleteProject = async () => {
     if (
@@ -63,7 +62,16 @@ const ProjectDetail = () => {
     }
   };
 
-  if (loading) return <div>Loading project details...</div>;
+  if (loading) return (
+    <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+      <div className="text-center">
+        <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <div className="mt-2">Loading ProjectDetail...</div>
+      </div>
+    </div>
+  );
   if (error) return <div className="alert alert-danger">{error}</div>;
   if (!project) return <div>Project not found</div>;
 
@@ -117,10 +125,15 @@ const ProjectDetail = () => {
                       {project.status}
                     </span>
                   </p>
-                  {/* <p>
-                    <strong>Project Manager:</strong>{" "}
-                    {project.user?.name || "Not assigned"}
-                  </p> */}
+                  <p>
+                    <strong>Members:</strong>{" "}
+                    <Link
+                      to={`/projects/${project.id}/members`}
+                      className="btn btn-sm btn-outline-primary ms-2"
+                    >
+                      Manage Members
+                    </Link>
+                  </p>
                 </div>
                 <div className="col-md-6">
                   <p>
@@ -157,9 +170,13 @@ const ProjectDetail = () => {
               </div>
 
               <div className="mb-3">
-                <strong>Budget:</strong> ₱{Number(project.budget || 0).toFixed(2)}<br />
+                <strong>Budget:</strong> ₱
+                {Number(project.budget || 0).toFixed(2)}
                 <br />
-                <strong>Actual Cost:</strong> ₱{Number(actualCost || 0).toFixed(2)}<br />
+                <br />
+                <strong>Actual Cost:</strong> ₱
+                {Number(actualCost || 0).toFixed(2)}
+                <br />
                 <br />
                 <strong>Status:</strong>{" "}
                 {actualCost > project.budget ? (

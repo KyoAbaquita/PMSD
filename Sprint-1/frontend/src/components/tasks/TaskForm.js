@@ -32,12 +32,14 @@ const TaskForm = () => {
           Authorization: `Bearer ${token}`,
         };
 
-        // Fetch users for assignment
-        const usersResponse = await axios.get(
-          "http://localhost:8000/api/users",
-          { headers }
-        );
-        setUsers(usersResponse.data.users);
+        // Fetch project members for assignment
+        if (projectId) {
+          const membersResponse = await axios.get(
+            `http://localhost:8000/api/projects/${projectId}/members`,
+            { headers }
+          );
+          setUsers(membersResponse.data.members);
+        }
 
         // Fetch projects for dropdown
         const projectsResponse = await axios.get(
@@ -55,7 +57,6 @@ const TaskForm = () => {
           const task = taskResponse.data.task;
           console.log("Fetched task:", task);
 
-
           setFormData({
             title: task.title,
             description: task.description || "",
@@ -63,15 +64,10 @@ const TaskForm = () => {
             assigned_to: task.assigned_to || "",
             status: task.status,
             priority: task.priority,
-            start_time: task.start_time
-              ? task.start_time.slice(0, 16)
-              : "",
-            due_time: task.due_time
-              ? task.due_time.slice(0, 16)
-              : "",
+            start_time: task.start_time ? task.start_time.slice(0, 16) : "",
+            due_time: task.due_time ? task.due_time.slice(0, 16) : "",
             cost: task.cost || "",
           });
-          
         }
 
         setLoading(false);
@@ -115,17 +111,28 @@ const TaskForm = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return (
+    <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+      <div className="text-center">
+        <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <div className="mt-2">Loading Form...</div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="task-form">
       <h2>{isEditing ? "Edit Task" : "Create New Task"}</h2>
-  
+
       {error && <div className="alert alert-danger">{error}</div>}
-  
+
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <label htmlFor="title" className="form-label">Task Title</label>
+          <label htmlFor="title" className="form-label">
+            Task Title
+          </label>
           <input
             type="text"
             className="form-control"
@@ -136,9 +143,11 @@ const TaskForm = () => {
             required
           />
         </div>
-  
+
         <div className="mb-3">
-          <label htmlFor="description" className="form-label">Description</label>
+          <label htmlFor="description" className="form-label">
+            Description
+          </label>
           <textarea
             className="form-control"
             id="description"
@@ -148,9 +157,11 @@ const TaskForm = () => {
             rows={3}
           />
         </div>
-  
+
         <div className="mb-3">
-          <label htmlFor="project_id" className="form-label">Project</label>
+          <label htmlFor="project_id" className="form-label">
+            Project
+          </label>
           <select
             className="form-select"
             id="project_id"
@@ -168,10 +179,12 @@ const TaskForm = () => {
             ))}
           </select>
         </div>
-  
+
         <div className="row mb-3">
           <div className="col">
-            <label htmlFor="status" className="form-label">Status</label>
+            <label htmlFor="status" className="form-label">
+              Status
+            </label>
             <select
               className="form-select"
               id="status"
@@ -179,7 +192,7 @@ const TaskForm = () => {
               value={formData.status}
               onChange={handleChange}
               required
-              disabled={formData.status === 'completed'}
+              disabled={formData.status === "completed"}
             >
               <option value="todo">To Do</option>
               <option value="in_progress">In Progress</option>
@@ -187,9 +200,11 @@ const TaskForm = () => {
               <option value="completed">Completed</option>
             </select>
           </div>
-  
+
           <div className="col">
-            <label htmlFor="priority" className="form-label">Priority</label>
+            <label htmlFor="priority" className="form-label">
+              Priority
+            </label>
             <select
               className="form-select"
               id="priority"
@@ -205,10 +220,12 @@ const TaskForm = () => {
             </select>
           </div>
         </div>
-  
+
         <div className="row mb-3">
           <div className="col">
-            <label htmlFor="assigned_to" className="form-label">Assign To</label>
+            <label htmlFor="assigned_to" className="form-label">
+              Assign To
+            </label>
             <select
               className="form-select"
               id="assigned_to"
@@ -224,9 +241,11 @@ const TaskForm = () => {
               ))}
             </select>
           </div>
-  
+
           <div className="col">
-            <label htmlFor="start_time" className="form-label">Start Time</label>
+            <label htmlFor="start_time" className="form-label">
+              Start Time
+            </label>
             <input
               type="datetime-local"
               className="form-control"
@@ -237,10 +256,12 @@ const TaskForm = () => {
             />
           </div>
         </div>
-  
+
         <div className="row mb-3">
           <div className="col">
-            <label htmlFor="due_time" className="form-label">Due Time</label>
+            <label htmlFor="due_time" className="form-label">
+              Due Time
+            </label>
             <input
               type="datetime-local"
               className="form-control"
@@ -250,9 +271,11 @@ const TaskForm = () => {
               onChange={handleChange}
             />
           </div>
-  
+
           <div className="col">
-            <label htmlFor="cost" className="form-label">Cost</label>
+            <label htmlFor="cost" className="form-label">
+              Cost
+            </label>
             <input
               type="number"
               className="form-control"
@@ -265,7 +288,7 @@ const TaskForm = () => {
             />
           </div>
         </div>
-  
+
         <div className="d-flex gap-2">
           <button type="submit" className="btn btn-primary">
             {isEditing ? "Update Task" : "Create Task"}
@@ -281,7 +304,6 @@ const TaskForm = () => {
       </form>
     </div>
   );
-  
 };
 
 export default TaskForm;

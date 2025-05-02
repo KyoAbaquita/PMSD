@@ -4,7 +4,6 @@ import axios from 'axios';
 
 const Dashboard = ({ onLogout }) => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,8 +21,7 @@ const Dashboard = ({ onLogout }) => {
         const headers = { Authorization: `Bearer ${token}` };
         
         // Fetch user profile
-        const userResponse = await axios.get('http://localhost:8000/api/user', { headers });
-        setUser(userResponse.data);
+        
         
         // Fetch recent projects
         const projectsResponse = await axios.get('http://localhost:8000/api/projects?limit=5', { headers });
@@ -43,22 +41,6 @@ const Dashboard = ({ onLogout }) => {
     fetchDashboardData();
   }, [navigate]);
   
-  const handleLogout = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      await axios.post('http://localhost:8000/api/logout', {}, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      
-      localStorage.removeItem('token');
-      onLogout();
-      navigate('/login');
-    } catch (err) {
-      setError('Logout failed');
-    }
-  };
   
   if (loading) return (
     <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
@@ -75,15 +57,7 @@ const Dashboard = ({ onLogout }) => {
   
   return (
     <div className="dashboard container py-4">
-      <header className="d-flex justify-content-between align-items-center mb-4">
-        <h1>Project Management System</h1>
-        <div className="user-actions">
-          <span className="me-3">Welcome, {user?.name}</span>
-          <button onClick={handleLogout} className="btn btn-outline-danger">
-            Logout
-          </button>
-        </div>
-      </header>
+      <h1 className="mb-4">Project Management System</h1>
 
       <div className="row mb-4">
         <div className="col-md-12">
@@ -102,9 +76,9 @@ const Dashboard = ({ onLogout }) => {
                 <Link to="/projects" className="btn btn-outline-info">
                   Manage Projects
                 </Link>
-                <Link to="/tasks" className="btn btn-outline-secondary">
+                {/* <Link to="/tasks" className="btn btn-outline-secondary">
                   Manage Tasks
-                </Link>
+                </Link> */}
               </div>
             </div>
           </div>
@@ -143,11 +117,11 @@ const Dashboard = ({ onLogout }) => {
                 </div>
               )}
               
-              <div className="mt-3">
+              {/* <div className="mt-3">
                 <Link to="/projects/create" className="btn btn-success">
                   Create New Project
                 </Link>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -180,7 +154,7 @@ const Dashboard = ({ onLogout }) => {
                           {task.status.replace('_', ' ')}
                         </span>
                         <small className="mt-1">
-                          Due: {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'Not set'}
+                          Due: {task.due_time ? new Date(task.due_time).toLocaleDateString() : 'Not set'}
                         </small>
                       </div>
                     </Link>
