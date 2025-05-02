@@ -1,6 +1,3 @@
-// f-end/src/App.js
-
-// Importing necessary libraries and components
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Nav from './components/layout/Nav';
@@ -13,6 +10,7 @@ import ProjectDetail from './components/projects/ProjectDetail';
 import TaskList from './components/tasks/TaskList';
 import TaskForm from './components/tasks/TaskForm';
 import TaskDetail from './components/tasks/TaskDetail';
+import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
@@ -24,15 +22,38 @@ function App() {
 
   // useEffect hook to check authentication status when the component mounts
   useEffect(() => {
-    // Checking for a stored authentication token in localStorage
-    const token = localStorage.getItem('token');
-    
-    // If a token exists, set user as authenticated
-    setIsAuthenticated(!!token);
-    
-    // Set loading to false as we have completed the authentication check
-    setLoading(false);
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+  
+      if (!token) {
+        setIsAuthenticated(false);
+        setLoading(false);
+        return;
+      }
+  
+      try {
+        const response = await axios.get('http://localhost:8000/api/user', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+  
+        if (response.data) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+          localStorage.removeItem('token');
+        }
+      } catch (err) {
+        // Token invalid or expired
+        setIsAuthenticated(false);
+        localStorage.removeItem('token');
+      }
+  
+      setLoading(false);
+    };
+  
+    checkAuth();
   }, []);
+  
 
   // Function to handle user logout, removing the token from localStorage
   const handleLogout = () => {
