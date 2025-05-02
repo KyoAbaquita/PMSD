@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import NotificationPanel from './notifications/NotificationPanel';
 
 const Dashboard = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -164,6 +165,7 @@ const Dashboard = ({ onLogout }) => {
             </div>
           </div>
         </div>
+        <NotificationPanel />
       </div>
       
       

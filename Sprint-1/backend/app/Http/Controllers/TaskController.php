@@ -5,26 +5,28 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Task;
 use App\Models\Project;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
     public function index(Request $request)
     {
         $query = Task::query();
-        
+
         if ($request->has('project_id')) {
             $query->where('project_id', $request->project_id);
         }
-        
+
         if ($request->has('assigned_to_me') && $request->assigned_to_me) {
             $query->where('assigned_to', auth()->id());
         }
-        
+
         if ($request->has('limit')) {
             $query->limit($request->limit);
         }
-        
+
         $tasks = $query->with(['project', 'assignedUser'])->get();
         return response()->json(['tasks' => $tasks]);
     }
@@ -43,7 +45,7 @@ class TaskController extends Controller
             'cost' => 'nullable|numeric',
             'time_spent' => 'nullable|numeric',
         ]);
-        
+
 
         $task = Task::create($validated);
 
@@ -52,42 +54,55 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
-        return response()->json(['task' => $task->load('project', 'assignedUser')]);
+        $task->load('assignedUser', 'project'); // eager load relationships
+        return response()->json([
+            'task' => $task
+        ]);
     }
+
+
 
     public function update(Request $request, Task $task)
-{
-    $validated = $request->validate([
-        'title' => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'project_id' => 'required|exists:projects,id',
-        'assigned_to' => 'nullable|exists:users,id',
-        'status' => 'required|string|in:todo,in_progress,review,completed',
-        'priority' => 'required|string|in:low,medium,high,urgent',
-        'due_date' => 'nullable|date',
-        'start_time' => 'nullable|date',
-        'due_time' => 'nullable|date',
-        'cost' => 'nullable|numeric',
-    ]);
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'project_id' => 'required|exists:projects,id',
+            'assigned_to' => 'nullable|exists:users,id',
+            'status' => 'required|string|in:todo,in_progress,review,completed',
+            'priority' => 'required|string|in:low,medium,high,urgent',
+            'due_date' => 'nullable|date',
+            'start_time' => 'nullable|date',
+            'due_time' => 'nullable|date',
+            'cost' => 'nullable|numeric',
+        ]);
 
-    // Prevent changing status if already completed
-    if ($task->status === 'completed' && $validated['status'] !== 'completed') {
-        return response()->json(['error' => 'Cannot change status of a completed task.'], 400);
-    }
-
-    // Handle time_spent if transitioning to completed
-    if ($task->status !== 'completed' && $validated['status'] === 'completed') {
-        if ($task->start_time ?? $validated['start_time'] ?? null) {
-            $start = Carbon::parse($validated['start_time'] ?? $task->start_time);
-            $end = Carbon::now();
-            $validated['time_spent'] = $start->diffInHours($end);
+        // Prevent changing status if already completed
+        if ($task->status === 'completed' && $validated['status'] !== 'completed') {
+            return response()->json(['error' => 'Cannot change status of a completed task.'], 400);
         }
+
+        // Handle time_spent if transitioning to completed
+        if ($task->status !== 'completed' && $validated['status'] === 'completed') {
+            if ($task->start_time ?? $validated['start_time'] ?? null) {
+                $start = Carbon::parse($validated['start_time'] ?? $task->start_time);
+                $end = Carbon::now();
+                $validated['time_spent'] = $start->diffInHours($end);
+            }
+        }
+
+        $task->update($validated);
+
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'task_updated',
+            'description' => 'Updated task "' . $task->title . '"',
+            'project_id' => $task->project_id,
+            'task_id' => $task->id,
+        ]);
+
+        return response()->json(['task' => $task]);
     }
-
-    $task->update($validated);
-
-    return response()->json(['task' => $task]);
-}
 
 
     public function destroy(Task $task)
@@ -100,8 +115,8 @@ class TaskController extends Controller
     {
         $project = Project::findOrFail($projectId);
         $tasks = Task::where('project_id', $projectId)
-                    ->with(['assignedUser'])
-                    ->get();
+            ->with(['assignedUser'])
+            ->get();
 
         // Transform tasks to ensure assignedUser is included properly
         $transformedTasks = $tasks->map(function ($task) {
@@ -122,7 +137,7 @@ class TaskController extends Controller
                 ] : null,
             ];
         });
-        
+
 
         return response()->json(['tasks' => $transformedTasks]);
     }

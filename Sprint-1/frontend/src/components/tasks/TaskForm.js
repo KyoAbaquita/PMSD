@@ -28,27 +28,11 @@ const TaskForm = () => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const headers = {
-          Authorization: `Bearer ${token}`,
-        };
-
-        // Fetch project members for assignment
-        if (projectId) {
-          const membersResponse = await axios.get(
-            `http://localhost:8000/api/projects/${projectId}/members`,
-            { headers }
-          );
-          setUsers(membersResponse.data.members);
-        }
-
-        // Fetch projects for dropdown
-        const projectsResponse = await axios.get(
-          "http://localhost:8000/api/projects",
-          { headers }
-        );
-        setProjects(projectsResponse.data.projects);
-
-        // If editing, fetch task details
+        const headers = { Authorization: `Bearer ${token}` };
+  
+        let resolvedProjectId = projectId;
+  
+        // If editing, fetch task first to get project_id and assigned info
         if (isEditing) {
           const taskResponse = await axios.get(
             `http://localhost:8000/api/tasks/${taskId}`,
@@ -56,7 +40,7 @@ const TaskForm = () => {
           );
           const task = taskResponse.data.task;
           console.log("Fetched task:", task);
-
+  
           setFormData({
             title: task.title,
             description: task.description || "",
@@ -68,17 +52,39 @@ const TaskForm = () => {
             due_time: task.due_time ? task.due_time.slice(0, 16) : "",
             cost: task.cost || "",
           });
+  
+          resolvedProjectId = task.project_id; // Use actual project_id from task
         }
-
+  
+        // Fetch project members
+        if (resolvedProjectId) {
+          const membersResponse = await axios.get(
+            `http://localhost:8000/api/projects/${resolvedProjectId}/members`,
+            { headers }
+          );
+          setUsers(membersResponse.data.members);
+        }
+  
+        // Fetch all projects for dropdown (only needed for create mode)
+        if (!isEditing) {
+          const projectsResponse = await axios.get(
+            "http://localhost:8000/api/projects",
+            { headers }
+          );
+          setProjects(projectsResponse.data.projects);
+        }
+  
         setLoading(false);
       } catch (err) {
+        console.error(err);
         setError("Failed to load form data");
         setLoading(false);
       }
     };
-
+  
     fetchData();
   }, [taskId, projectId, isEditing]);
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
