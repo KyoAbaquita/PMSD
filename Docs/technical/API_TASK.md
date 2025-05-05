@@ -223,3 +223,88 @@ Response:
 ```
 
 ##
+
+## 6. Collaboration Features _(Sprint 4)_
+
+### Comments
+
+| Endpoint               | Method | Description                   |
+| ---------------------- | ------ | ----------------------------- |
+| `/tasks/{id}/comments` | GET    | List all task comments        |
+| `/tasks/{id}/comments` | POST   | Add new comment               |
+| `/comments/{id}`       | DELETE | Delete comment                |
+| `/files`               | POST   | Upload file (max 50MB)        |
+| `/activity`            | GET    | Fetch recent project activity |
+
+### Files
+
+| Endpoint               | Method | Description         |
+| ---------------------- | ------ | ------------------- |
+| `/projects/{id}/files` | GET    | List project files  |
+| `/tasks/{id}/files`    | POST   | Upload file to task |
+
+### Sample Requests
+
+**Add Comment:**
+
+```json
+POST /tasks/42/comments
+{
+  "text": "@alex Please review this design",
+  "file_id": 15
+}
+```
+
+##
+
+## 7. Reporting & Risk Management _(Sprint 5)_
+
+### Reports
+
+| Endpoint                   | Method | Description                         |
+| -------------------------- | ------ | ----------------------------------- |
+| `/projects/{id}/reports`   | GET    | Generate progress report (PDF/JSON) |
+| `/projects/{id}/analytics` | GET    | Get burn rate charts                |
+
+### Risks
+
+| Endpoint               | Method | Description          |
+| ---------------------- | ------ | -------------------- |
+| `/risks`               | POST   | Log new project risk |
+| `/projects/{id}/risks` | GET    | List project risks   |
+
+### Sample Requests
+
+**Generate Report:**
+
+```bash
+GET /projects/5/reports?format=pdf
+```
+
+**Log Risk**
+
+```json
+POST /risks
+{
+  "project_id": 5,
+  "description": "Vendor delay risk",
+  "severity": "high",
+  "mitigation": "Identify backup supplier"
+}
+```
+
+**Response (Risk Logging):**
+
+```json
+{
+  "id": 101,
+  "severity": "high",
+  "status": "open",
+  "reported_by": 3,
+  "created_at": "2025-05-15T09:30:00Z"
+}
+```
+
+##
+
+#

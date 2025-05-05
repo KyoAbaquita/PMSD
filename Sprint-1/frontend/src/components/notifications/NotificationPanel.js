@@ -35,7 +35,7 @@ const NotificationPanel = () => {
     const interval = setInterval(fetchNotifications, 5000); // poll every 5s
 
     return () => clearInterval(interval); // cleanup on unmount
-  }, []);
+  }, [activities]);
 
   return (
     <div className="card mb-4">

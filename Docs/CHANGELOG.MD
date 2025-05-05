@@ -1,17 +1,17 @@
-## [Sprint 2] - [03/26/2025]
+## [Sprints] - [03/26/2025]
 
-**Last Updated:** 2025-04-29 (Sprint 3)
+**Last Updated:** 2025-05-5 (Sprint 5)
 
 ### Added
 
-Sptring 2
+Sptring 5
 
-- Project CRUD operations
-- Task assignment workflow
-- Priority/status labels
+- Project analytics dashboard
+- Risk tracking system
+- Production deployment docs
 
 ### Prending
 
-### Changes
+### Changed
 
-- Added time tracking, budget columns, and hour caps.
+- Finalized all API endpoints

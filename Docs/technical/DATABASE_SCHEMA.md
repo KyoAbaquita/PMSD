@@ -3,7 +3,7 @@
 ````markdown
 # Database Schema
 
-**Last Updated:** [04/29/2025]
+**Last Updated:** [05/05/2025]
 
 ## Tables
 
@@ -22,6 +22,7 @@
 | `created_at`          | timestamp   | Date and time when the user account was created                                           |
 | `updated_at`          | timestamp   | Date and time when the user account was last updated                                      |
 | `max_hours_week`      | INT         | Weekly work cap (default: 40)                                                             |
+| `permissions`         | VARCHAR     | role_permissions                                                                          |
 | --------------------- | ----------- | ----------------------------------------------------------------------------------------- |
 
 ### `projects`
@@ -36,7 +37,8 @@
 | `status`              | enum        | Current status: pending (default), in_progress, or completed                              |
 | `created_at`          | timestamp   | Date and time when the project was created                                                |
 | `updated_at`          | timestamp   | Date and time when the project was last updated                                           |
-| `planned_budget`      | DECIMAL     | Initial budget estimate (Sprint 3)                                                        |
+| `planned_budget`      | DECIMAL     | Initial budget estimate                                                                   |
+| `report_config`       | JSON        | Chart preferences                                                                         |
 | --------------------- | ----------- | ----------------------------------------------------------------------------------------- |
 
 ### `tasks`
@@ -66,6 +68,42 @@
 | `created_at`  | timestamp | Audit timestamp                 |
 | `updated_at`  | timestamp | Audit timestamp                 |
 
+### `comments` _(Sprint 4)_
+
+| Field        | Type      | Description                     |
+| ------------ | --------- | ------------------------------- |
+| `id`         | bigint    | Primary key (auto-incrementing) |
+| `task_id`    | bigint    | Foreign key to `tasks`          |
+| `user_id`    | bigint    | Author (references `users.id`)  |
+| `text`       | text      | Markdown content                |
+| `created_at` | timestamp | Auto-set on creation            |
+| `updated_at` | timestamp | Auto-updated on changes         |
+
+### `files` _(Sprint 4)_
+
+| Field         | Type         | Description                                |
+| ------------- | ------------ | ------------------------------------------ |
+| `id`          | bigint       | Primary key (auto-incrementing)            |
+| `project_id`  | bigint       | Linked project (references `projects.id`)  |
+| `task_id`     | bigint       | Optional task link (references `tasks.id`) |
+| `uploaded_by` | bigint       | User ID (references `users.id`)            |
+| `path`        | varchar      | Storage path (e.g., `uploads/abc.jpg`)     |
+| `size_mb`     | decimal(5,2) | File size in megabytes (max 50.00)         |
+| `created_at`  | timestamp    | Upload timestamp                           |
+
+### `risks` _(Sprint 5)_
+
+| Field         | Type      | Description                          |
+| ------------- | --------- | ------------------------------------ |
+| `id`          | bigint    | Primary key (auto-incrementing)      |
+| `project_id`  | bigint    | Foreign key to `projects`            |
+| `reported_by` | bigint    | Who logged risk (references `users`) |
+| `description` | text      | Risk details                         |
+| `severity`    | enum      | low/medium/high                      |
+| `status`      | enum      | open/mitigated/closed                |
+| `created_at`  | timestamp | When risk was logged                 |
+| `updated_at`  | timestamp | Last update timestamp                |
+
 ---
 
 ## Indexes
@@ -77,6 +115,11 @@
 | `users`        | `email`         | UNIQUE  | Ensure no duplicate emails      |
 | `time_entries` | `task_id`       | FOREIGN | Speed up time-entry aggregation |
 | `time_entries` | `user_id`       | FOREIGN | Track user productivity         |
+| `comments`     | `task_id`       | FOREIGN | Speed up task comment loads     |
+| `files`        | `project_id`    | FOREIGN | Organize project files          |
+| `files`        | `uploaded_by`   | FOREIGN | Track user uploads              |
+| `risks`        | `project_id`    | FOREIGN | Filter risks by project         |
+| `risks`        | `reported_by`   | FOREIGN | Track who logged risks          |
 
 ---
 
@@ -107,9 +150,36 @@
   - **Constraint**: `ON DELETE CASCADE` (Time entries are deleted with tasks).
 
 - **`users` ━━ `time_entries`**
+
   - Association
   - One-to-Many: A user can log time to multiple tasks.
   - **Constraint**: `ON DELETE SET NULL` (Entries remain if user is deleted).
+
+  - **`tasks` ◆━━ `comments`**
+  - Composition
+  - One-to-Many
+  - **Constraint**: `ON DELETE CASCADE` (Comments are deleted with parent task)
+
+- **`projects` ━━ `files`**
+
+  - Aggregation
+  - One-to-Many
+  - **Constraint**: `ON DELETE SET NULL` (Files remain if project is deleted)
+
+- **`users` ━━ `comments`**
+  - Association
+  - One-to-Many
+  - **Constraint**: `ON DELETE SET NULL` (Comments show "[deleted user]" if author is removed)
+- **`projects` ◆━━ `risks`**
+
+  - Composition
+  - One-to-Many
+  - **Constraint**: `ON DELETE CASCADE` (Risks are deleted with project)
+
+- **`users` ━━ `risks`**
+  - Association
+  - One-to-Many
+  - **Constraint**: `ON DELETE SET NULL` (Risks show "[deleted user]" if reporter is removed)
 
 ---
 
