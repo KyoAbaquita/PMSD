@@ -7,7 +7,9 @@
 1. [Account Management](#1-account-management)
 2. [Projects](#2-projects)
 3. [Task](#3-task)
-4. [Resource&Budget] (#4-Resource&Budget)
+4. [ResourceBudget](#4-ResourceBudget)
+5. [Collaboration](#5-Collaboration)
+6. [ReportingRiskManagement](#6-ReportingRiskManagement)
 
 ---
 
@@ -102,9 +104,9 @@ Drag tasks between columns:
 
 ---
 
-## 4. Resource & Budget
+## 4. ResourceBudget
 
-## 4. Resource & Budget (Sprint 3)
+**4. ResourceBudget**
 
 ### Allocating Team Members
 
@@ -125,7 +127,9 @@ Navigate to **Project → Finance Dashboard** to see:
 
 ---
 
-## 5. Collaboration (Sprint 4)
+## 5. Collaboration
+
+**5. Collaboration**
 
 ### Commenting on Tasks
 
@@ -137,7 +141,9 @@ Navigate to **Project → Finance Dashboard** to see:
 - Drag files into any comment box
 - View all project files under **Documents** tab
 
-## 6. Reporting & Risk Management _(Sprint 5)_
+## 6. ReportingRiskManagement
+
+**6. ReportingRiskManagement**
 
 ### Generating Reports
 
