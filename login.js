@@ -9,7 +9,7 @@ const Login = ({ onLogin }) => {
     const [error, setError] = useState(""); // State to store error messages
     const navigate = useNavigate();
 
-    // Handle login form submission
+    // Handle login form submissions
     const handleLogin = async (e) => {
         e.preventDefault();
 
