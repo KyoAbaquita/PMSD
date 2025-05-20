@@ -207,5 +207,4 @@ function App() {
   );
 }
 
-// Exporting the App component to use it in other parts of the app
 export default App;
