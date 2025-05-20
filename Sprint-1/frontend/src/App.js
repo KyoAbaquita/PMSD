@@ -12,10 +12,13 @@ import Register from "./components/registration";
 import ProjectList from "./components/projects/ProjectList";
 import ProjectForm from "./components/projects/ProjectForm";
 import ProjectDetail from "./components/projects/ProjectDetail";
-import ProjectMembers from './components/projects/ProjectMembers';
+import ProjectMembers from "./components/projects/ProjectMembers";
 import TaskList from "./components/tasks/TaskList";
 import TaskForm from "./components/tasks/TaskForm";
 import TaskDetail from "./components/tasks/TaskDetail";
+import ExpenditureList from "./components/expenditure/ExpenditureList";
+import AddExpenditure from "./components/expenditure/AddExpenditure";
+import ProjectReport from "./components/projects/ProjectReport";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -42,7 +45,7 @@ function App() {
         const response = await axios.get("http://localhost:8000/api/user", {
           headers: { Authorization: `Bearer ${token}` },
         });
-      
+
         if (response?.data?.id) {
           setIsAuthenticated(true);
           setUser(response.data);
@@ -89,7 +92,6 @@ function App() {
       <div className="App">
         {/* If authenticated, display the navigation bar */}
         {isAuthenticated && <Nav user={user} onLogout={handleLogout} />}
-
 
         <div className="container py-4">
           <Routes>
@@ -178,6 +180,26 @@ function App() {
 
             {/* Catch-all route for unknown paths, redirecting to home */}
             <Route path="*" element={<Navigate to="/" />} />
+
+            <Route
+              path="/projects/:id/expenditures"
+              element={
+                isAuthenticated ? <ExpenditureList /> : <Navigate to="/login" />
+              }
+            />
+            <Route
+              path="/projects/:id/expenditures/add"
+              element={
+                isAuthenticated ? <AddExpenditure /> : <Navigate to="/login" />
+              }
+            />
+
+            <Route
+              path="/projects/:id/report"
+              element={
+                isAuthenticated ? <ProjectReport /> : <Navigate to="/login" />
+              }
+            />
           </Routes>
         </div>
       </div>

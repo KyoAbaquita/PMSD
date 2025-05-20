@@ -22,7 +22,6 @@ return new class extends Migration
             $table->dateTime('start_time')->nullable();
             $table->dateTime('due_time')->nullable();
             $table->float('time_spent')->nullable();
-            $table->decimal('cost', 10, 2)->nullable();
             $table->timestamps();
         });
     }

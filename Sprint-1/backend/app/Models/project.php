@@ -5,11 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
 class Project extends Model
 {
     use HasFactory;
@@ -44,5 +39,21 @@ class Project extends Model
     {
         return $this->belongsToMany(User::class);
     }
+
+    public function expenditures()
+    {
+        return $this->hasMany(ProjectExpenditure::class);
+    }
+
+    public function getRemainingBudgetAttribute()
+    {
+        return $this->budget - $this->expenditures->sum('amount');
+    }
+
+    public function riskIssues()
+    {
+        return $this->hasMany(RiskIssue::class);
+    }
+
 
 }

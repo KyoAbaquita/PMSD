@@ -1,46 +1,56 @@
 import React, { useState, useEffect } from "react";
+import { API_BASE_URL } from "../api";
 import { Link, useParams } from "react-router-dom";
 import axios from "axios";
 
 const TaskList = () => {
   const { projectId } = useParams();
   const [tasks, setTasks] = useState([]);
+  const [project, setProject] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [project, setProject] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const headers = {
-          Authorization: `Bearer ${token}`,
-        };
+        const headers = { Authorization: `Bearer ${token}` };
 
-        // Fetch tasks for the specific project
-        const tasksResponse = await axios.get(
-          `http://localhost:8000/api/projects/${projectId}/tasks`,
-          { headers }
-        );
+        const userResponse = await axios.get(`${API_BASE_URL}/user`, {
+          headers,
+        });
+        setUser(userResponse.data);
 
-        // Fetch project details
-        const projectResponse = await axios.get(
-          `http://localhost:8000/api/projects/${projectId}`,
-          { headers }
-        );
+        let tasksResponse;
+
+        if (projectId) {
+          tasksResponse = await axios.get(
+            `${API_BASE_URL}/projects/${projectId}/tasks`,
+            { headers }
+          );
+          const projectResponse = await axios.get(
+            `${API_BASE_URL}/projects/${projectId}`,
+            { headers }
+          );
+          setProject(projectResponse.data.project);
+        } else {
+          tasksResponse = await axios.get(
+            `${API_BASE_URL}/tasks?assigned_to_me=1`,
+            { headers }
+          );
+        }
 
         setTasks(tasksResponse.data.tasks);
-        setProject(projectResponse.data.project);
-        setLoading(false);
       } catch (err) {
+        console.error(err);
         setError("Failed to fetch tasks");
+      } finally {
         setLoading(false);
       }
     };
 
-    if (projectId) {
-      fetchData();
-    }
+    fetchData();
   }, [projectId]);
 
   const handleDeleteTask = async (taskId) => {
@@ -48,20 +58,19 @@ const TaskList = () => {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:8000/api/tasks/${taskId}`, {
+      await axios.delete(`${API_BASE_URL}/tasks/${taskId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      // Update the task list after deletion
       setTasks(tasks.filter((task) => task.id !== taskId));
     } catch (err) {
       setError("Failed to delete task");
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
       <div
         className="d-flex justify-content-center align-items-center"
@@ -79,30 +88,38 @@ const TaskList = () => {
         </div>
       </div>
     );
+  }
+
   if (error) return <div className="alert alert-danger">{error}</div>;
 
   return (
     <div className="task-list">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Tasks for {project?.name}</h2>
-        <div>
-          <Link
-            to={`/projects/${projectId}`}
-            className="btn btn-secondary me-2"
-          >
-            Back to Project
-          </Link>
-          <Link
-            to={`/projects/${projectId}/tasks/create`}
-            className="btn btn-primary"
-          >
-            Add New Task
-          </Link>
-        </div>
+        <h2>{projectId ? `Tasks for ${project?.name}` : "My Tasks"}</h2>
+        {projectId && (
+          <div>
+            <Link
+              to={`/projects/${projectId}`}
+              className="btn btn-secondary me-2"
+            >
+              Back to Project
+            </Link>
+            {user && project && user.id === project.user_id && (
+            <Link
+              to={`/projects/${projectId}/tasks/create`}
+              className="btn btn-primary"
+            >
+              Add New Task
+            </Link>
+            )}
+          </div>
+        )}
       </div>
 
       {tasks.length === 0 ? (
-        <p>No tasks found for this project.</p>
+        <p>
+          {projectId ? "No tasks found for this project." : "No tasks found."}
+        </p>
       ) : (
         <div className="table-responsive">
           <table className="table table-hover">
@@ -146,18 +163,23 @@ const TaskList = () => {
                       >
                         View
                       </Link>
-                      <Link
-                        to={`/tasks/${task.id}/edit`}
-                        className="btn btn-sm btn-warning"
-                      >
-                        Edit
-                      </Link>
-                      <button
-                        className="btn btn-sm btn-danger"
-                        onClick={() => handleDeleteTask(task.id)}
-                      >
-                        Delete
-                      </button>
+
+                      {user && project && user.id === project.user_id && (
+                        <>
+                          <Link
+                            to={`/tasks/${task.id}/edit`}
+                            className="btn btn-sm btn-warning"
+                          >
+                            Edit
+                          </Link>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleDeleteTask(task.id)}
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>

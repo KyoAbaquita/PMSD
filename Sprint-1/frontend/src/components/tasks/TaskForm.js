@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { API_BASE_URL } from "../api";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 
@@ -16,7 +17,6 @@ const TaskForm = () => {
     priority: "medium",
     start_time: "",
     due_time: "",
-    cost: "",
   });
 
   const [users, setUsers] = useState([]);
@@ -29,18 +29,18 @@ const TaskForm = () => {
       try {
         const token = localStorage.getItem("token");
         const headers = { Authorization: `Bearer ${token}` };
-  
+
         let resolvedProjectId = projectId;
-  
+
         // If editing, fetch task first to get project_id and assigned info
         if (isEditing) {
           const taskResponse = await axios.get(
-            `http://localhost:8000/api/tasks/${taskId}`,
+            `${API_BASE_URL}/tasks/${taskId}`,
             { headers }
           );
           const task = taskResponse.data.task;
           console.log("Fetched task:", task);
-  
+
           setFormData({
             title: task.title,
             description: task.description || "",
@@ -50,30 +50,27 @@ const TaskForm = () => {
             priority: task.priority,
             start_time: task.start_time ? task.start_time.slice(0, 16) : "",
             due_time: task.due_time ? task.due_time.slice(0, 16) : "",
-            cost: task.cost || "",
           });
-  
+
           resolvedProjectId = task.project_id; // Use actual project_id from task
         }
-  
+
         // Fetch project members
         if (resolvedProjectId) {
           const membersResponse = await axios.get(
-            `http://localhost:8000/api/projects/${resolvedProjectId}/members`,
+            `${API_BASE_URL}/projects/${resolvedProjectId}/members`,
             { headers }
           );
           setUsers(membersResponse.data.members);
         }
-  
-        // Fetch all projects for dropdown (only needed for create mode)
-        if (!isEditing) {
-          const projectsResponse = await axios.get(
-            "http://localhost:8000/api/projects",
-            { headers }
-          );
-          setProjects(projectsResponse.data.projects);
-        }
-  
+
+        // Fetch all projects owned by the user
+        const projectsResponse = await axios.get(
+          `${API_BASE_URL}/projects`,
+          { headers }
+        );
+        setProjects(projectsResponse.data.projects);
+
         setLoading(false);
       } catch (err) {
         console.error(err);
@@ -81,10 +78,9 @@ const TaskForm = () => {
         setLoading(false);
       }
     };
-  
+
     fetchData();
   }, [taskId, projectId, isEditing]);
-  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -98,8 +94,8 @@ const TaskForm = () => {
       const token = localStorage.getItem("token");
       const method = isEditing ? "put" : "post";
       const url = isEditing
-        ? `http://localhost:8000/api/tasks/${taskId}`
-        : "http://localhost:8000/api/tasks";
+        ? `${API_BASE_URL}/tasks/${taskId}`
+        : `${API_BASE_URL}/tasks`;
 
       await axios({
         method,
@@ -117,16 +113,24 @@ const TaskForm = () => {
     }
   };
 
-  if (loading) return (
-    <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-      <div className="text-center">
-        <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
-          <span className="visually-hidden">Loading...</span>
+  if (loading)
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "100vh" }}
+      >
+        <div className="text-center">
+          <div
+            className="spinner-border text-primary"
+            role="status"
+            style={{ width: "3rem", height: "3rem" }}
+          >
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <div className="mt-2">Loading Form...</div>
         </div>
-        <div className="mt-2">Loading Form...</div>
       </div>
-    </div>
-  );
+    );
 
   return (
     <div className="task-form">
@@ -275,22 +279,6 @@ const TaskForm = () => {
               name="due_time"
               value={formData.due_time}
               onChange={handleChange}
-            />
-          </div>
-
-          <div className="col">
-            <label htmlFor="cost" className="form-label">
-              Cost
-            </label>
-            <input
-              type="number"
-              className="form-control"
-              id="cost"
-              name="cost"
-              value={formData.cost}
-              onChange={handleChange}
-              min="0"
-              step="0.01"
             />
           </div>
         </div>

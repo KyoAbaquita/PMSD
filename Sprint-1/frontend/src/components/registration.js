@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { API_BASE_URL } from "./api";
 import { useNavigate } from "react-router-dom";
 
 const Registration = () => {
@@ -46,7 +47,7 @@ const Registration = () => {
         }
 
         try {
-            const response = await fetch("http://127.0.0.1:8000/api/register", {
+            const response = await fetch(`${API_BASE_URL}/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -163,7 +164,7 @@ const Registration = () => {
                                 />
                             </div>
 
-                            <div className="mb-3">
+                            <div className="mb-3 d-none">
                                 <select
                                     className="form-select"
                                     value={role}
@@ -174,18 +175,6 @@ const Registration = () => {
                                     <option value="team_member">Team Member</option>
                                     <option value="client">Client</option>
                                 </select>
-                            </div>
-
-                            <div className="mb-3 form-check">
-                                <input
-                                    type="checkbox"
-                                    className="form-check-input"
-                                    id="terms"
-                                    required
-                                />
-                                <label className="form-check-label" htmlFor="terms">
-                                    I agree to the Terms of Service and Privacy Policy
-                                </label>
                             </div>
 
                             <button type="submit" className="btn btn-primary w-100">

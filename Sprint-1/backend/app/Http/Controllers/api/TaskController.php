@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\api;
 
 use Carbon\Carbon;
 use App\Models\Task;
 use App\Models\Project;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Controller;
 
 class TaskController extends Controller
 {
@@ -33,6 +33,12 @@ class TaskController extends Controller
 
     public function store(Request $request)
     {
+        $project = Project::findOrFail($request->project_id);
+        // Check if the authenticated user is the owner of the project
+        if ($project->user_id !== auth()->id()) {
+            return response()->json(['error' => 'Only the project owner can create tasks.'], 403);
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -42,12 +48,21 @@ class TaskController extends Controller
             'priority' => 'required|string|in:low,medium,high,urgent',
             'start_time' => 'nullable|date',
             'due_time' => 'nullable|date',
-            'cost' => 'nullable|numeric',
             'time_spent' => 'nullable|numeric',
         ]);
 
-
         $task = Task::create($validated);
+
+        if ($validated['assigned_to']) {
+            ActivityLog::create([
+                'user_id' => $validated['assigned_to'],
+                'project_id' => $task->project_id,
+                'task_id' => $task->id,
+                'action' => 'task_assigned',
+                'description' => 'You were assigned to task "' . $task->title . '"',
+            ]);
+        }
+        
 
         return response()->json(['task' => $task], 201);
     }
@@ -64,6 +79,12 @@ class TaskController extends Controller
 
     public function update(Request $request, Task $task)
     {
+        $user = auth()->user();
+        // Check if the authenticated user is the owner of the project or assigned to the task
+        if ($task->assigned_to !== $user->id && $task->project->user_id !== $user->id) {
+            return response()->json(['error' => 'You are not allowed to edit this task.'], 403);
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -74,13 +95,17 @@ class TaskController extends Controller
             'due_date' => 'nullable|date',
             'start_time' => 'nullable|date',
             'due_time' => 'nullable|date',
-            'cost' => 'nullable|numeric',
         ]);
 
-        // Prevent changing status if already completed
-        if ($task->status === 'completed' && $validated['status'] !== 'completed') {
-            return response()->json(['error' => 'Cannot change status of a completed task.'], 400);
+        // Prevent changing status if already completed for non-owner
+        if (
+            $task->status === 'completed' &&
+            $validated['status'] !== 'completed' &&
+            $task->project->user_id !== $user->id
+        ) {
+            return response()->json(['error' => 'Only the project owner can revert a completed task.'], 403);
         }
+        
 
         // Handle time_spent if transitioning to completed
         if ($task->status !== 'completed' && $validated['status'] === 'completed') {
@@ -91,15 +116,38 @@ class TaskController extends Controller
             }
         }
 
+        $previousAssignedTo = $task->assigned_to;
+
         $task->update($validated);
 
-        ActivityLog::create([
-            'user_id' => Auth::id(),
-            'action' => 'task_updated',
-            'description' => 'Updated task "' . $task->title . '"',
-            'project_id' => $task->project_id,
-            'task_id' => $task->id,
-        ]);
+        if (
+            isset($validated['assigned_to']) &&
+            $validated['assigned_to'] !== $previousAssignedTo &&
+            $validated['assigned_to'] !== null
+        ) {
+            ActivityLog::create([
+                'user_id' => $validated['assigned_to'],
+                'project_id' => $task->project_id,
+                'task_id' => $task->id,
+                'action' => 'task_reassigned',
+                'description' => 'You were reassigned to task "' . $task->title . '"',
+            ]);
+        }
+
+        if (
+            isset($validated['assigned_to']) &&
+            $validated['assigned_to'] === null &&
+            $previousAssignedTo !== null
+        ) {
+            ActivityLog::create([
+                'user_id' => $previousAssignedTo,
+                'project_id' => $task->project_id,
+                'task_id' => $task->id,
+                'action' => 'task_unassigned',
+                'description' => 'You were unassigned from task "' . $task->title . '"',
+            ]);
+        }
+        
 
         return response()->json(['task' => $task]);
     }
@@ -107,6 +155,12 @@ class TaskController extends Controller
 
     public function destroy(Task $task)
     {
+        $user = auth()->user();
+        // Check if the authenticated user is the owner of the project or assigned to the task
+        if ($task->assigned_to !== $user->id && $task->project->user_id !== $user->id) {
+            return response()->json(['error' => 'You are not allowed to delete this task.'], 403);
+        }
+
         $task->delete();
         return response()->json(['message' => 'Task deleted successfully']);
     }
@@ -130,7 +184,6 @@ class TaskController extends Controller
                 'priority' => $task->priority,
                 'start_time' => $task->start_time,
                 'due_time' => $task->due_time,
-                'cost' => $task->cost,
                 'assignedUser' => $task->assignedUser ? [
                     'id' => $task->assignedUser->id,
                     'name' => $task->assignedUser->name,

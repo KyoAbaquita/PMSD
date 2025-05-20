@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { API_BASE_URL } from "../api"; 
 import axios from "axios";
 
 const ProjectForm = () => {
@@ -25,7 +26,7 @@ const ProjectForm = () => {
         try {
           const token = localStorage.getItem("token");
           const response = await axios.get(
-            `http://localhost:8000/api/projects/${id}`,
+            `${API_BASE_URL}/projects/${id}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -67,8 +68,8 @@ const ProjectForm = () => {
       const token = localStorage.getItem("token");
       const method = isEditing ? "put" : "post";
       const url = isEditing
-        ? `http://localhost:8000/api/projects/${id}`
-        : "http://localhost:8000/api/projects";
+        ? `${API_BASE_URL}/projects/${id}`
+        : `${API_BASE_URL}/projects`;
       console.log("Submitting project formData:", formData);
 
       await axios({
@@ -85,7 +86,7 @@ const ProjectForm = () => {
       if (err.response && err.response.data && err.response.data.message) {
         setError(`Failed to save project: ${err.response.data.message}`);
       } else {
-        setError("Failed to save project");
+        setError("You dont have permission to perform this action.");
       }
       console.error("Project save error:", err);
     }

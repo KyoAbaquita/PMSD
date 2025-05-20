@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { API_BASE_URL } from "../api";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -14,13 +15,14 @@ const TaskDetail = () => {
   const [file, setFile] = useState(null);
   const [files, setFiles] = useState([]);
   const [fileError, setFileError] = useState(null);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const fetchTask = async () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `http://localhost:8000/api/tasks/${taskId}`,
+          `${API_BASE_URL}/tasks/${taskId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -37,11 +39,25 @@ const TaskDetail = () => {
 
     fetchTask();
 
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(`${API_BASE_URL}/user`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUser(res.data);
+      } catch (err) {
+        console.error("Failed to fetch user");
+      }
+    };
+
+    fetchUser();
+
     const fetchFiles = async () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `http://localhost:8000/api/tasks/${taskId}/files`,
+          `${API_BASE_URL}/tasks/${taskId}/files`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -60,7 +76,7 @@ const TaskDetail = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `http://localhost:8000/api/tasks/${taskId}/comments`,
+          `${API_BASE_URL}/tasks/${taskId}/comments`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -80,7 +96,7 @@ const TaskDetail = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:8000/api/tasks/${taskId}`,
+        `${API_BASE_URL}/tasks/${taskId}`,
         { ...task, status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -88,6 +104,9 @@ const TaskDetail = () => {
       setTask({ ...task, status: newStatus });
     } catch (err) {
       setError("Failed to update task status");
+      setTimeout(() => {
+        navigate(-1);
+      }, 2000);
     }
   };
 
@@ -98,13 +117,16 @@ const TaskDetail = () => {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:8000/api/tasks/${taskId}`, {
+      await axios.delete(`${API_BASE_URL}/tasks/${taskId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       navigate(`/projects/${task.project_id}/tasks`);
     } catch (err) {
       setError("Failed to delete task");
+      setTimeout(() => {
+        navigate(-1);
+      }, 3000);
     }
   };
   const handleCommentSubmit = async (e) => {
@@ -114,7 +136,7 @@ const TaskDetail = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        `http://localhost:8000/api/tasks/${taskId}/comments`,
+        `${API_BASE_URL}/tasks/${taskId}/comments`,
         { comment: newComment },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -124,6 +146,9 @@ const TaskDetail = () => {
       setNewComment("");
     } catch (err) {
       setCommentsError("Failed to post comment.");
+      setTimeout(() => {
+        navigate(-1);
+      }, 3000);
     }
   };
 
@@ -137,7 +162,7 @@ const TaskDetail = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        `http://localhost:8000/api/tasks/${taskId}/files`,
+        `${API_BASE_URL}/tasks/${taskId}/files`,
         formData,
         {
           headers: {
@@ -151,6 +176,9 @@ const TaskDetail = () => {
       e.target.reset(); // Reset the form
     } catch (err) {
       setFileError("Failed to upload file.");
+      setTimeout(() => {
+        navigate(-1);
+      }, 3000);
     }
   };
 
@@ -158,7 +186,7 @@ const TaskDetail = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:8000/api/files/${fileId}/download`,
+        `${API_BASE_URL}/files/${fileId}/download`,
         {
           headers: { Authorization: `Bearer ${token}` },
           responseType: "blob", // Important for file data
@@ -175,6 +203,9 @@ const TaskDetail = () => {
     } catch (error) {
       console.error("Download failed", error);
       alert("Download failed. You may not have permission.");
+      setTimeout(() => {
+        navigate(-1);
+      }, 3000);
     }
   };
 
@@ -210,12 +241,19 @@ const TaskDetail = () => {
           >
             Back to Tasks
           </Link>
-          <Link to={`/tasks/${taskId}/edit`} className="btn btn-warning me-2">
-            Edit Task
-          </Link>
-          <button onClick={handleDeleteTask} className="btn btn-danger">
-            Delete Task
-          </button>
+          {user && task.project?.owner_id === user.id && (
+            <>
+              <Link
+                to={`/tasks/${taskId}/edit`}
+                className="btn btn-warning me-2"
+              >
+                Edit Task
+              </Link>
+              <button onClick={handleDeleteTask} className="btn btn-danger">
+                Delete Task
+              </button>
+            </>
+          )}
         </div>
       </div>
 

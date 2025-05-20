@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { API_BASE_URL } from "../api";
 import axios from "axios";
 
 const ProjectMembers = () => {
@@ -11,6 +12,8 @@ const ProjectMembers = () => {
   const [error, setError] = useState(null);
   const [projectName, setProjectName] = useState("");
   const [creatorId, setCreatorId] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const isOwner = currentUserId === creatorId;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -19,9 +22,11 @@ const ProjectMembers = () => {
         const headers = { Authorization: `Bearer ${token}` };
 
         const [membersRes, usersRes, projectRes] = await Promise.all([
-          axios.get(`http://localhost:8000/api/projects/${id}/members`, { headers }),
-          axios.get("http://localhost:8000/api/users", { headers }),
-          axios.get(`http://localhost:8000/api/projects/${id}`, { headers }),
+          axios.get(`${API_BASE_URL}/projects/${id}/members`, {
+            headers,
+          }),
+          axios.get(`${API_BASE_URL}/users`, { headers }),
+          axios.get(`${API_BASE_URL}/projects/${id}`, { headers }),
         ]);
 
         setMembers(membersRes.data.members);
@@ -29,6 +34,10 @@ const ProjectMembers = () => {
         const project = projectRes.data.project;
         setProjectName(project.name);
         setCreatorId(project.user_id);
+        const userRes = await axios.get(`${API_BASE_URL}/user`, {
+          headers,
+        });
+        setCurrentUserId(userRes.data.id);
         setLoading(false);
       } catch (err) {
         setError("Failed to load project members.");
@@ -45,15 +54,20 @@ const ProjectMembers = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        `http://localhost:8000/api/projects/${id}/members`,
+        `${API_BASE_URL}/projects/${id}/members`,
         { user_id: selectedUser },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setSelectedUser("");
       // Re-fetch after add
-      const headers = { Authorization: `Bearer ${localStorage.getItem("token")}` };
-      const membersRes = await axios.get(`http://localhost:8000/api/projects/${id}/members`, { headers });
+      const headers = {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      };
+      const membersRes = await axios.get(
+        `${API_BASE_URL}/projects/${id}/members`,
+        { headers }
+      );
       setMembers(membersRes.data.members);
     } catch (err) {
       alert("Failed to add user. Maybe already a member?");
@@ -65,17 +79,25 @@ const ProjectMembers = () => {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(
-        `http://localhost:8000/api/projects/${id}/members/${userId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axios.delete(`${API_BASE_URL}/projects/${id}/members/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       // Re-fetch after removal
-      const headers = { Authorization: `Bearer ${localStorage.getItem("token")}` };
-      const membersRes = await axios.get(`http://localhost:8000/api/projects/${id}/members`, { headers });
+      const headers = {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      };
+      const membersRes = await axios.get(
+        `${API_BASE_URL}/projects/${id}/members`,
+        { headers }
+      );
       setMembers(membersRes.data.members);
     } catch (err) {
-      alert("Failed to remove user.");
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Failed to remove user.";
+      alert(errorMessage);
     }
   };
 
@@ -83,16 +105,24 @@ const ProjectMembers = () => {
     (user) => !members.some((member) => member.id === user.id)
   );
 
-  if (loading) return (
-    <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-      <div className="text-center">
-        <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
-          <span className="visually-hidden">Loading...</span>
+  if (loading)
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "100vh" }}
+      >
+        <div className="text-center">
+          <div
+            className="spinner-border text-primary"
+            role="status"
+            style={{ width: "3rem", height: "3rem" }}
+          >
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <div className="mt-2">Loading Project Members...</div>
         </div>
-        <div className="mt-2">Loading Project Members...</div>
       </div>
-    </div>
-  );
+    );
   if (error) return <div className="alert alert-danger">{error}</div>;
 
   return (
@@ -103,6 +133,12 @@ const ProjectMembers = () => {
           Back to Project
         </Link>
       </div>
+      {!isOwner && (
+        <div className="alert alert-info mt-3">
+          You can view the members, but only the project owner can add or remove
+          them.
+        </div>
+      )}
 
       <div className="card mb-4">
         <div className="card-header">Add Member</div>
@@ -119,13 +155,15 @@ const ProjectMembers = () => {
               </option>
             ))}
           </select>
-          <button
-            onClick={handleAddMember}
-            className="btn btn-primary"
-            disabled={!selectedUser}
-          >
-            Add
-          </button>
+          {isOwner && (
+            <button
+              onClick={handleAddMember}
+              className="btn btn-primary"
+              disabled={!selectedUser}
+            >
+              Add
+            </button>
+          )}
         </div>
       </div>
 
@@ -146,7 +184,7 @@ const ProjectMembers = () => {
               <button
                 className="btn btn-sm btn-outline-danger"
                 onClick={() => handleRemoveMember(member.id)}
-                disabled={member.id === creatorId}
+                disabled={!isOwner || member.id === creatorId}
               >
                 Remove
               </button>

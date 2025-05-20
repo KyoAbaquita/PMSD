@@ -5,10 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
 class Task extends Model
 {
@@ -23,8 +19,7 @@ class Task extends Model
         'priority',
         'start_time',
         'due_time',
-        'time_spent',
-        'cost'
+        'time_spent'
     ];
 
     protected $casts = [

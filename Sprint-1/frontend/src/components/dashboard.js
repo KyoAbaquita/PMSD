@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import NotificationPanel from './notifications/NotificationPanel';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "./api";
+import axios from "axios";
 
 const Dashboard = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -9,53 +9,65 @@ const Dashboard = ({ onLogout }) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         if (!token) {
-          navigate('/login');
+          navigate("/login");
           return;
         }
-        
+
         const headers = { Authorization: `Bearer ${token}` };
-        
+
         // Fetch user profile
-        
-        
+
         // Fetch recent projects
-        const projectsResponse = await axios.get('http://localhost:8000/api/projects?limit=5', { headers });
+        const projectsResponse = await axios.get(
+          `${API_BASE_URL}/projects?limit=5`,
+          { headers }
+        );
         setProjects(projectsResponse.data.projects);
-        
+
         // Fetch recent tasks assigned to user
-        const tasksResponse = await axios.get('http://localhost:8000/api/tasks?assigned_to_me=1&limit=5', { headers });
+        const tasksResponse = await axios.get(
+          `${API_BASE_URL}/tasks?assigned_to_me=1&limit=5`,
+          { headers }
+        );
         setTasks(tasksResponse.data.tasks);
-        
+
         setLoading(false);
       } catch (err) {
-        setError('Failed to fetch dashboard data');
+        setError("Failed to fetch dashboard data");
         setLoading(false);
       }
     };
-    
+
     fetchDashboardData();
   }, [navigate]);
-  
-  
-  if (loading) return (
-    <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-      <div className="text-center">
-        <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
-          <span className="visually-hidden">Loading...</span>
+
+  if (loading)
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "100vh" }}
+      >
+        <div className="text-center">
+          <div
+            className="spinner-border text-primary"
+            role="status"
+            style={{ width: "3rem", height: "3rem" }}
+          >
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <div className="mt-2">Loading dashboard...</div>
         </div>
-        <div className="mt-2">Loading dashboard...</div>
       </div>
-    </div>
-  );
-  
+    );
+
   if (error) return <div className="alert alert-danger">{error}</div>;
-  
+
   return (
     <div className="dashboard container py-4">
       <h1 className="mb-4">Project Management System</h1>
@@ -85,7 +97,7 @@ const Dashboard = ({ onLogout }) => {
           </div>
         </div>
       </div>
-      
+
       <div className="row mb-4">
         <div className="col-md-6 mb-3">
           <div className="card h-100">
@@ -100,24 +112,30 @@ const Dashboard = ({ onLogout }) => {
                 <p>No projects found.</p>
               ) : (
                 <div className="list-group">
-                  {projects.map(project => (
-                    <Link 
+                  {projects.map((project) => (
+                    <Link
                       key={project.id}
                       to={`/projects/${project.id}`}
                       className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                     >
                       <div>
                         <h6 className="mb-1">{project.name}</h6>
-                        <small>{project.description ? `${project.description.substring(0, 50)}...` : 'No description'}</small>
+                        <small>
+                          {project.description
+                            ? `${project.description.substring(0, 50)}...`
+                            : "No description"}
+                        </small>
                       </div>
-                      <span className={`badge bg-${getStatusBadge(project.status)}`}>
+                      <span
+                        className={`badge bg-${getStatusBadge(project.status)}`}
+                      >
                         {project.status}
                       </span>
                     </Link>
                   ))}
                 </div>
               )}
-              
+
               {/* <div className="mt-3">
                 <Link to="/projects/create" className="btn btn-success">
                   Create New Project
@@ -126,7 +144,7 @@ const Dashboard = ({ onLogout }) => {
             </div>
           </div>
         </div>
-        
+
         <div className="col-md-6 mb-3">
           <div className="card h-100">
             <div className="card-header d-flex justify-content-between align-items-center">
@@ -140,22 +158,30 @@ const Dashboard = ({ onLogout }) => {
                 <p>No tasks assigned to you.</p>
               ) : (
                 <div className="list-group">
-                  {tasks.map(task => (
-                    <Link 
+                  {tasks.map((task) => (
+                    <Link
                       key={task.id}
                       to={`/tasks/${task.id}`}
                       className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                     >
                       <div>
                         <h6 className="mb-1">{task.title}</h6>
-                        <small>Project: {task.project?.name || `Project #${task.project_id}`}</small>
+                        <small>
+                          Project:{" "}
+                          {task.project?.name || `Project #${task.project_id}`}
+                        </small>
                       </div>
                       <div className="d-flex flex-column align-items-end">
-                        <span className={`badge bg-${getStatusBadge(task.status)}`}>
-                          {task.status.replace('_', ' ')}
+                        <span
+                          className={`badge bg-${getStatusBadge(task.status)}`}
+                        >
+                          {task.status.replace("_", " ")}
                         </span>
                         <small className="mt-1">
-                          Due: {task.due_time ? new Date(task.due_time).toLocaleDateString() : 'Not set'}
+                          Due:{" "}
+                          {task.due_time
+                            ? new Date(task.due_time).toLocaleDateString()
+                            : "Not set"}
                         </small>
                       </div>
                     </Link>
@@ -165,24 +191,29 @@ const Dashboard = ({ onLogout }) => {
             </div>
           </div>
         </div>
-        <NotificationPanel />
       </div>
-      
-      
     </div>
   );
 };
 
 const getStatusBadge = (status) => {
   switch (status) {
-    case 'planning': return 'secondary';
-    case 'active': return 'primary';
-    case 'completed': return 'success';
-    case 'on_hold': return 'warning';
-    case 'todo': return 'secondary';
-    case 'in_progress': return 'primary';
-    case 'review': return 'info';
-    default: return 'light';
+    case "planning":
+      return "secondary";
+    case "active":
+      return "primary";
+    case "completed":
+      return "success";
+    case "on_hold":
+      return "warning";
+    case "todo":
+      return "secondary";
+    case "in_progress":
+      return "primary";
+    case "review":
+      return "info";
+    default:
+      return "light";
   }
 };
 
